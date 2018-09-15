@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
 
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
+	close(sockfd);
         exit(0);
     }
 
@@ -45,7 +46,8 @@ int main(int argc, char *argv[]) {
     /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
-        exit(1);
+        close(sockfd);
+	exit(1);
     }
 
     /* Now ask for a message from the user, this message
@@ -61,7 +63,8 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR writing to socket");
-        exit(1);
+        close(sockfd);
+	exit(1);
     }
 
     /* Now read server response */
@@ -70,9 +73,14 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR reading from socket");
-        exit(1);
+        close(sockfd);
+	exit(1);
     }
 
     printf("%s\n", buffer);
+
+    shutdown(sockfd, SHUT_RDWR);
+    close(sockfd);
+
     return 0;
 }

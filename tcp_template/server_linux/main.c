@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
     /* Now bind the host address using bind() call.*/
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR on binding");
+	close(sockfd);
         exit(1);
     }
 
@@ -44,32 +45,47 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    while(1) {
 
-    if (newsockfd < 0) {
-        perror("ERROR on accept");
-        exit(1);
+        /* Accept actual connection from the client */
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
+        if (newsockfd < 0) {
+            perror("ERROR on accept");
+	    close(sockfd);
+            exit(1);
+        }
+
+        /* If connection is established then start communicating */
+        bzero(buffer, 256);
+        n = read(newsockfd, buffer, 255); // recv on Windows
+
+        if (n < 0) {
+            perror("ERROR reading from socket");
+	    close(sockfd);
+	    close(newsockfd);
+            exit(1);
+        }
+
+        printf("Here is the message: %s\n", buffer);
+
+        /* Write a response to the client */
+        n = write(newsockfd, "I got your message", 18); // send on Windows
+
+        if (n < 0) {
+            perror("ERROR writing to socket");
+	    close(sockfd);
+	    close(newsockfd);
+            exit(1);
+        }
+
+        shutdown(newsockfd, SHUT_RDWR);
+        close(newsockfd);
+
     }
 
-    /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("Here is the message: %s\n", buffer);
-
-    /* Write a response to the client */
-    n = write(newsockfd, "I got your message", 18); // send on Windows
-
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
+    shutdown(sockfd, SHUT_RDWR);
+    close(sockfd);
 
     return 0;
 }
