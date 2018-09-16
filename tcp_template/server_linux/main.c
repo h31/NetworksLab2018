@@ -7,13 +7,14 @@
 
 #include <string.h>
 
+/* function for thread */
+void *communicate_func (void *arg);
+
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
-    char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
-    ssize_t n;
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,13 +45,38 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    /* Accept connections forever */
+    while(1) {
+    	/* Accept actual connection from the client */
+    	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-    if (newsockfd < 0) {
-        perror("ERROR on accept");
-        exit(1);
+    	if (newsockfd < 0) {
+	    perror("ERROR on accept");
+            exit(1);
+    	}
+
+	/* Making new thread for messaging with client */
+	pthread_t thread;	//thread
+	int result;		//result of thread creating
+	result = pthread_create(&thread, NULL, communicate_func, &newsockfd); //create new thread
+	if(result != 0) {
+	    perror("Error while creating thread");
+	}
     }
+    close(sockfd);
+    exit(0);
+}
+
+/* waiting for connection */
+void *waiting_func (void *arg) {
+
+}
+
+/* function for thread */
+void *communicate_func (void *arg) {
+    int newsockfd = * (int *) arg;;
+    char buffer[256];
+    ssize_t n;
 
     /* If connection is established then start communicating */
     bzero(buffer, 256);
@@ -58,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR reading from socket");
-        exit(1);
+        pthread_exit(1);
     }
 
     printf("Here is the message: %s\n", buffer);
@@ -68,8 +94,9 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR writing to socket");
-        exit(1);
+	pthread_exit(1);
     }
 
-    return 0;
+    close(newsockfd); //close socket after messaging
+    pthread_exit(0);
 }
