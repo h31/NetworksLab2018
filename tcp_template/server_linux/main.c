@@ -7,10 +7,32 @@
 
 #include <string.h>
 
-/* function for thread */
+/* function for messaging thread */
 void *communicate_func (void *arg);
 
+/*function for listen thread */
+void *listen_func (void *arg);
+
 int main(int argc, char *argv[]) {
+    pthread_t listen_thread;
+    int result;	//result of creating thread
+    result = pthread_create(&listen_thread, NULL, listen_func, NULL); //create listen thread
+    if(result != 0) {
+	perror("Error while creating listen thread");
+    }
+    
+    /* if pressed q then exit program */
+    int key = 0;
+    while(1) {
+	key = getchar();
+	if(key == 'q') break;
+    }
+    
+    exit(0);
+}
+
+/* waiting for connection */
+void *listen_func (void *arg) {
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
@@ -63,31 +85,33 @@ int main(int argc, char *argv[]) {
 	    perror("Error while creating thread");
 	}
     }
+
     close(sockfd);
-    exit(0);
-}
-
-/* waiting for connection */
-void *waiting_func (void *arg) {
-
+    pthread_exit(0);
 }
 
 /* function for thread */
 void *communicate_func (void *arg) {
-    int newsockfd = * (int *) arg;;
+    int newsockfd = * (int *) arg;
     char buffer[256];
     ssize_t n;
+    bzero(buffer, 256);
+    printf("Here is the message: \n");
 
     /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
+   // while(1) {
+    	n = recv(newsockfd, buffer, 255, 0); // recv on Windows
 
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        pthread_exit(1);
-    }
-
-    printf("Here is the message: %s\n", buffer);
+	if (n < 0) {
+	    perror("ERROR reading from socket");
+	    pthread_exit(1);
+	}
+	
+//	if (n == 0) {
+//	    break;
+//	}
+	printf("%s", buffer);
+   // }
 
     /* Write a response to the client */
     n = write(newsockfd, "I got your message", 18); // send on Windows
