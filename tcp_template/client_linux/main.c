@@ -7,6 +7,8 @@
 
 #include <string.h>
 
+void closeSocket(int sockfd, int error, char* errorMsg);
+
 int main(int argc, char *argv[]) {
     int sockfd, n;
     uint16_t portno;
@@ -33,9 +35,7 @@ int main(int argc, char *argv[]) {
     server = gethostbyname(argv[1]);
 
     if (server == NULL) {
-        fprintf(stderr, "ERROR, no such host\n");
-	close(sockfd);
-        exit(0);
+        closeSocket(sockfd, 0, "ERROR, no such host\n");
     }
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -45,9 +45,7 @@ int main(int argc, char *argv[]) {
 
     /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR connecting");
-        close(sockfd);
-	exit(1);
+        closeSocket(sockfd, 1, "ERROR connecting");
     }
 
     /* Now ask for a message from the user, this message
@@ -62,9 +60,7 @@ int main(int argc, char *argv[]) {
     n = write(sockfd, buffer, strlen(buffer));
 
     if (n < 0) {
-        perror("ERROR writing to socket");
-        close(sockfd);
-	exit(1);
+        closeSocket(sockfd, 1, "ERROR writing to socket");
     }
 
     /* Now read server response */
@@ -72,15 +68,21 @@ int main(int argc, char *argv[]) {
     n = read(sockfd, buffer, 255);
 
     if (n < 0) {
-        perror("ERROR reading from socket");
-        close(sockfd);
-	exit(1);
+        closeSocket(sockfd, 1, "ERROR reading from socket");
     }
 
     printf("%s\n", buffer);
 
-    shutdown(sockfd, SHUT_RDWR);
-    close(sockfd);
+    closeSocket(sockfd, 0, "");
 
     return 0;
+}
+
+void closeSocket(int sockfd, int error, char* errorMsg){
+    if(strcmp(errorMsg,"") != 0){
+        perror(errorMsg);
+    }
+    shutdown(sockfd, SHUT_RDWR);
+    close(sockfd);
+    exit(error);
 }
