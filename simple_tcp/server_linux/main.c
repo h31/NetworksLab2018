@@ -60,7 +60,7 @@ void handleClientConnection(void* arg) {
 		messageBytesLength = buffer[0];
 		
 		while (messageBytesLength > totalBytesCount) {
-			// Continue reading message with to assemble full size message
+			// Continue reading message to assemble full size message
 			printf("Reading additional bytes from = %d\r\n", newsockfd);
 			if (isFinishing) {
 				cleanUpClientConnectionThread(newsockfd);
