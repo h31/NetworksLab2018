@@ -48,11 +48,13 @@ int main(int argc, char *argv[]) {
 	perror("listen");
 	exit(EXIT_FAILURE);
     }
+
     puts("Waiting for incoming connections");
     clilen = sizeof(cli_addr);
 
     while( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)))
     {
+
 	puts("Connection accepted");
 
 	pthread_t sn_thread;
@@ -63,6 +65,7 @@ int main(int argc, char *argv[]) {
 	    return 1;
 	}
 
+	
 	puts("Handler assigned");
     }
 
@@ -92,7 +95,7 @@ void *connection_handler(void *socket_desc)
         exit(1);
 	pthread_exit(1);
     }
-
+    buffer[n] = '\a';
     printf("Here is the message: %s\n", buffer);
 
     /* Write a response to the client */
