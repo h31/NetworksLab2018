@@ -4,4 +4,4 @@ project(server_linux)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pthread")
 
 set(SOURCE_FILES main.c)
-add_executable(server_linux ${SOURCE_FILES})
+add_executable(server_linux.result ${SOURCE_FILES})
