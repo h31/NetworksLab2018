@@ -7,8 +7,22 @@
 
 #include <string.h>
 
+#include <signal.h>
+
+#define IMITATE_PARTLY_SENDING
+
+int sockfd;
+
+void closeApp() {
+	printf("Closing socket\r\n");
+	shutdown(sockfd, SHUT_RDWR);
+	close(sockfd);
+	exit(0);
+}
+
 int main(int argc, char *argv[]) {
-    int sockfd, n;
+	signal(SIGINT, closeApp);
+    int n;
     uint16_t portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -51,28 +65,46 @@ int main(int argc, char *argv[]) {
     /* Now ask for a message from the user, this message
        * will be read by server
     */
+	
+	int textInputSize;
+	textInputSize = 0;
+	
+	while (1) {
+		printf("Please enter the message: ");
+		bzero(buffer, 256);
+		fgets(buffer + 1, sizeof(buffer) - 2, stdin);
+		
+		if (strstr(buffer + 1, "\\q") != NULL) {
+			closeApp();
+		}
+			
+		textInputSize = strlen(buffer + 1);
+		printf("Message size = %d\r\n", textInputSize);
+		buffer[0] = textInputSize;
+		
+		/* Send message to the server */
+		#ifdef IMITATE_PARTLY_SENDING
+			int firstPartSize = 4;
+			n = write(sockfd, buffer, firstPartSize);
+			n = write(sockfd, buffer + firstPartSize, textInputSize + 2 - firstPartSize);
+		#else
+			n = write(sockfd, buffer, textInputSize + 2);
+		#endif
 
-    printf("Please enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
+		if (n < 0) {
+			perror("ERROR writing to socket");
+			closeApp();
+		}
 
-    /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
+		/* Now read server response */
+		bzero(buffer, sizeof(buffer));
+		n = read(sockfd, buffer, sizeof(buffer) - 1);
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
+		if (n < 0) {
+			perror("ERROR reading from socket");
+			closeApp();
+		}
 
-    /* Now read server response */
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("%s\n", buffer);
-    return 0;
+		printf("%s\n", buffer);
+	}
 }
