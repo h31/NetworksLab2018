@@ -4,17 +4,18 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
+#include <pthread.h>
 #include <string.h>
 
+void *connection_handler(void *);
+
 int main(int argc, char *argv[]) {
-    int sockfd, newsockfd;
+    int sockfd, newsockfd,*new_socket;
     uint16_t portno;
     unsigned int clilen;
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
-    ssize_t n;
-
+   
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -45,31 +46,56 @@ int main(int argc, char *argv[]) {
     clilen = sizeof(cli_addr);
 
     /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
+	
+    while ((newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)) )
+	{
+		pthread_t new_thread;
+		new_socket = malloc(sizeof *new_socket);
+		*new_socket = newsockfd;
+		if( pthread_create( &new_thread , NULL ,  connection_handler , (void*) new_socket) < 0)
+        {
+            perror("ERROR creating thread");
+            return 1;
+        }
+	}
+	
     if (newsockfd < 0) {
         perror("ERROR on accept");
         exit(1);
     }
 
-    /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("Here is the message: %s\n", buffer);
-
-    /* Write a response to the client */
-    n = write(newsockfd, "I got your message", 18); // send on Windows
-
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
-
     return 0;
 }
+void *connection_handler(void *sockfd)
+{
+    //Get the socket descriptor
+    int sockt = *(int*)sockfd;
+    int received_size;
+    char buffer[256];
+
+    //Receive a message from client
+    while( (received_size = recv(sockt , buffer , 256 , 0)) > 0 )
+    {
+        //Send the message back to client
+        write(sockt , buffer , strlen(buffer));
+        printf("Here is the message: %s\n", buffer);
+		memset(buffer ,'\0', 256);
+    }
+
+    if(received_size == 0)
+    {
+        puts("Client has been disconnected");
+        fflush(stdout);
+    }
+    else if(received_size == -1)
+    {
+        perror("ERROR recv");
+    }
+
+    //Free and close socket, terminate the socket
+    free(sockfd);
+    close(sockt);
+    pthread_exit(0); 
+    return 0;
+}
+	

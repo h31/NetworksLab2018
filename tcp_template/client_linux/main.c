@@ -4,7 +4,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
 #include <string.h>
 
 int main(int argc, char *argv[]) {
@@ -51,28 +50,30 @@ int main(int argc, char *argv[]) {
     /* Now ask for a message from the user, this message
        * will be read by server
     */
-
-    printf("Please enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
-
-    /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
-
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
-
-    /* Now read server response */
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("%s\n", buffer);
-    return 0;
+	
+	while(1)
+    {
+   	 	printf("Please enter the message: ");
+    	bzero(buffer, 256);
+		fgets(buffer, 255, stdin);
+        
+        /* Send message to the server */
+        if( send(sockfd , buffer , 256 , 0) < 0)
+        {
+            puts("ERROR sending");
+            return 1;
+        }
+		/* Now read server response */
+		if( recv(sockfd , buffer , 256 , 0) < 0)
+        {
+            puts("ERROR recv");
+            break;
+        }
+         
+        }
+    
+		shutdown(sockfd, SHUT_RDWR);
+    	close(sockfd);
+    	return 0;
 }
+    
