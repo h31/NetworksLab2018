@@ -14,7 +14,7 @@
 
 int sockfd;
 
-int const MAX_CLIENT_COUNT = 2;
+int const MAX_CLIENT_COUNT = 10;
 int totalActiveClientsCount = 0;
 int isFinishing = FALSE;
 
