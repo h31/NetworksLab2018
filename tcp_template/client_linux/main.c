@@ -7,6 +7,20 @@
 
 #include <string.h>
 
+int readn(int sockfd, char *buf, int n){
+    int k;
+    int off = 0;
+    for(int i = 0; i < n; ++i){
+        k = read(sockfd, buf + off, 1);
+        off += 1;
+        if (k < 0){
+            printf("ERROR reading from socket \n");
+            exit(1);
+        }
+    }
+    return off;
+}
+
 int main(int argc, char *argv[]) {
     int sockfd, n;
     uint16_t portno;
@@ -14,6 +28,7 @@ int main(int argc, char *argv[]) {
     struct hostent *server;
 
     char buffer[256];
+    char *p = buffer;
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -57,7 +72,7 @@ int main(int argc, char *argv[]) {
     fgets(buffer, 255, stdin);
 
     /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
+    n = write(sockfd, buffer, 255);
 
     if (n < 0) {
         perror("ERROR writing to socket");
@@ -66,13 +81,12 @@ int main(int argc, char *argv[]) {
 
     /* Now read server response */
     bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
+    n = readn(sockfd, p, 255);
 
     printf("%s\n", buffer);
+
+    shutdown(sockfd, 2);
+    close(sockfd);
+
     return 0;
 }

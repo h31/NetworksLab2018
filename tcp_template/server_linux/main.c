@@ -7,11 +7,26 @@
 
 #include <string.h>
 
+int readn(int sockfd, char *buf, int n){
+    int k;
+    int off = 0;
+    for(int i = 0; i < n; ++i){
+        k = read(sockfd, buf + off, 1);
+        off += 1;
+        if (k < 0){
+            printf("ERROR reading from socket \n");
+            exit(1);
+        }
+    }
+    return off;
+}
+
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
     char buffer[256];
+    char *p = buffer;
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
 
@@ -47,6 +62,9 @@ int main(int argc, char *argv[]) {
     /* Accept actual connection from the client */
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
+    shutdown(sockfd, 2);
+    close(sockfd);
+    
     if (newsockfd < 0) {
         perror("ERROR on accept");
         exit(1);
@@ -54,12 +72,8 @@ int main(int argc, char *argv[]) {
 
     /* If connection is established then start communicating */
     bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
+    
+    n = readn(newsockfd, p, 255);
 
     printf("Here is the message: %s\n", buffer);
 
@@ -70,6 +84,9 @@ int main(int argc, char *argv[]) {
         perror("ERROR writing to socket");
         exit(1);
     }
+
+    shutdown(newsockfd, 2);
+    close(newsockfd);
 
     return 0;
 }
