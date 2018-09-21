@@ -95,6 +95,7 @@ void acceptNewClients() {
 	clilen = sizeof(cli_addr);
 
 	pthread_t nextClientThread;
+	int nextClientThreadCreationResult;
 	
 	while (TRUE) {
 		if (isFinishing) {
@@ -113,13 +114,16 @@ void acceptNewClients() {
 			continue;
 		}
 		
-		pthread_mutex_lock(&mutex);
-		totalActiveClientsCount++;
-		printf("Creating handler for newsockfd = %d\r\n", newsockfd);
-		printf("Total active clients = %d\r\n", totalActiveClientsCount);
-		pthread_mutex_unlock(&mutex);
-		
-		pthread_create(&nextClientThread, NULL, handleClientConnection, (void*) newsockfd);
+		nextClientThreadCreationResult = pthread_create(&nextClientThread, NULL, handleClientConnection, (void*) newsockfd);
+		if (nextClientThreadCreationResult != 0) {
+			printf("Error on creating client thread, error number: %d\r\n", nextClientThreadCreationResult);
+		} else {
+			pthread_mutex_lock(&mutex);
+			totalActiveClientsCount++;
+			printf("Creating handler for newsockfd = %d\r\n", newsockfd);
+			printf("Total active clients = %d\r\n", totalActiveClientsCount);
+			pthread_mutex_unlock(&mutex);
+		}
 	}
 }
 
@@ -176,7 +180,7 @@ int main() {
 	int workerThreadCreationResult;
 	workerThreadCreationResult = pthread_create(&incomingConnectionsWorkerThread, NULL, acceptNewClients, NULL);
 	if (workerThreadCreationResult != 0) {
-		printf("Error on creating worker thread, error number: %d\r\nFinishing", workerThreadCreationResult);
+		printf("Error on creating worker thread, error number: %d\r\n", workerThreadCreationResult);
 	}
 	
 	// Reading server-side commands from terminal
