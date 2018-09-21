@@ -54,48 +54,64 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+	while(1) {
 
-    if (newsockfd < 0) {
-        perror("ERROR on accept");
+		/* Accept actual connection from the client */
+		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
-        exit(1);
-    }
+		if (newsockfd < 0) {
+		    perror("ERROR on accept");
 
-    /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
+			shutdown(sockfd, SHUT_RDWR);
+			close(sockfd);
+		    exit(1);
+		}
 
-    if (n < 0) {
-        perror("ERROR reading from socket");
+		switch(fork()) {
+			case -1:
+			perror("ERROR on fork");
+			break;
 
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
+			case 0:
+			close(sockfd);
+			/* If connection is established then start communicating */
+			bzero(buffer, 256);
+			n = read(newsockfd, buffer, 255); // recv on Windows
 
-		shutdown(newsockfd, SHUT_RDWR);
-		close(newsockfd);
-        exit(1);
-    }
+			if (n < 0) {
+				perror("ERROR reading from socket");
 
-    printf("Here is the message: %s\n", buffer);
+				shutdown(sockfd, SHUT_RDWR);
+				close(sockfd);
 
-    /* Write a response to the client */
-    n = write(newsockfd, "I got your message", 18); // send on Windows
+				shutdown(newsockfd, SHUT_RDWR);
+				close(newsockfd);
+				exit(1);
+			}
+	
+			printf("Here is the message: %s\n", buffer);
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
+			/* Write a response to the client */
+			n = write(newsockfd, "I got your message", 18); // send on Windows
 
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
+			if (n < 0) {
+				perror("ERROR writing to socket");
 
-		shutdown(newsockfd, SHUT_RDWR);
-		close(newsockfd);
-        exit(1);
-    }
+				shutdown(sockfd, SHUT_RDWR);
+				close(sockfd);
 
+				shutdown(newsockfd, SHUT_RDWR);
+				close(newsockfd);
+				exit(1);
+			}
+			close(newsockfd);
+			
+			exit(0);
+			default:
+			close(newsockfd);
+		}  
+	}
+	
 	shutdown(newsockfd, SHUT_RDWR);
 	close(newsockfd);
 
