@@ -60,8 +60,8 @@ int main(int argc, char *argv[]) {
     n = write(sockfd, buffer, strlen(buffer));
 
     if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+    perror("ERROR writing to socket");
+    exit(1);
     }
 
     /* Now read server response */
@@ -69,10 +69,11 @@ int main(int argc, char *argv[]) {
     n = read(sockfd, buffer, 255);
 
     if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
+    perror("ERROR reading from socket");
+    exit(1);
+   }
 
-    printf("%s\n", buffer);
+    printf("%s\n", buffer);    
     return 0;
 }
+
