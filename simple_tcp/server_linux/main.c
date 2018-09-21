@@ -59,6 +59,8 @@ void handleClientConnection(void* arg) {
 		
 		messageBytesLength = buffer[0];
 		
+		printf("Initially read [%d] bytes of [%d] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
+		
 		while (messageBytesLength > totalBytesCount) {
 			// Continue reading message to assemble full size message
 			printf("Reading additional bytes from = %d\r\n", newsockfd);
@@ -66,10 +68,16 @@ void handleClientConnection(void* arg) {
 				cleanUpClientConnectionThread(newsockfd);
 			}
 			
-			totalBytesCount = totalBytesCount + read(newsockfd, buffer + totalBytesCount, sizeof(buffer) - totalBytesCount);
+			additionalBytesCount = read(newsockfd, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount);
+			if (additionalBytesCount <= 0) {
+				cleanUpClientConnectionThread(newsockfd);
+			}
+			totalBytesCount = totalBytesCount + additionalBytesCount;
+			
+			printf("Read [%d] bytes of [%d] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
 		}
 		
-		printf("Read from = %d:\r\n%s\r\n", newsockfd, buffer + 1);
+		printf("Read from = %d:\r\n%s", newsockfd, buffer + 1);
 
 		/* Write a response to the client */
 		totalBytesCount = write(newsockfd, "I got your message", 18);
@@ -103,7 +111,7 @@ void acceptNewClients() {
 			return;
 		}
 		if (totalActiveClientsCount == MAX_CLIENT_COUNT) {
-			// Limit for maximum clients count, printf from below can produce infinite flood
+			// Limit for maximum clients count, the printf below can produce infinite flood
 			// printf("Connection limit reached, new user will hanging on connect\r\n");
 			continue;
 		}

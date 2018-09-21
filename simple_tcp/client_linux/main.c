@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 		#ifdef IMITATE_PARTLY_SENDING
 			int firstPartSize = 4;
 			n = write(sockfd, buffer, firstPartSize);
+			sleep(2);
 			n = write(sockfd, buffer + firstPartSize, textInputSize + 2 - firstPartSize);
 		#else
 			n = write(sockfd, buffer, textInputSize + 2);
@@ -100,7 +101,7 @@ int main(int argc, char *argv[]) {
 		bzero(buffer, sizeof(buffer));
 		n = read(sockfd, buffer, sizeof(buffer) - 1);
 
-		if (n < 0) {
+		if (n <= 0) {
 			perror("ERROR reading from socket");
 			closeApp();
 		}
