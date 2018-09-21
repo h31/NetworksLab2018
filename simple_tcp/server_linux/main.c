@@ -105,11 +105,7 @@ void acceptNewClients() {
 	pthread_t nextClientThread;
 	int nextClientThreadCreationResult;
 	
-	while (TRUE) {
-		if (isFinishing) {
-			// Server finishing
-			return;
-		}
+	while (!isFinishing) {
 		if (totalActiveClientsCount == MAX_CLIENT_COUNT) {
 			// Limit for maximum clients count, the printf below can produce infinite flood
 			// printf("Connection limit reached, new user will hanging on connect\r\n");
@@ -133,6 +129,8 @@ void acceptNewClients() {
 			pthread_mutex_unlock(&mutex);
 		}
 	}
+	
+	pthread_exit(0);
 }
 
 void mainThreadCleanUp() {
