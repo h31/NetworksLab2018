@@ -32,10 +32,18 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
+     if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
+    	perror("ERROR on setsockopt");
+    	shutdown(sockfd, 2);
+    	close(sockfd);
+    }
+
     /* Now bind the host address using bind() call.*/
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
     {
         perror("ERROR on binding");
+	shutdown(sockfd, 2);
+    	close(sockfd);
         exit(1);
     }
 
@@ -75,9 +83,9 @@ int main(int argc, char *argv[]) {
 	return 1;
     }
 
-    close(sockfd);
     shutdown(sockfd, 2);
-    return 0;
+    close(sockfd);
+    exit(0);
 }
 
 void *connection_handler(void *socket_desc)
@@ -91,11 +99,11 @@ void *connection_handler(void *socket_desc)
     n = read(sock, buffer, 255);
 
     if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
+	perror("ERROR reading from socket");
+	shutdown(sock, 2);
+	close(sock);
 	pthread_exit(1);
     }
-    buffer[n] = '\a';
     printf("Here is the message: %s\n", buffer);
 
     /* Write a response to the client */
@@ -103,11 +111,11 @@ void *connection_handler(void *socket_desc)
 
     if (n < 0) {
         perror("ERROR writing to socket");
-        exit(1);
+        shutdown(sock, 2);
+	close(sock);
 	pthread_exit(1);
     }
-    close(sock);
     shutdown(sock, 2);
+    close(sock);
     pthread_exit(0);
-    return 0;
 }
