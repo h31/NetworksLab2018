@@ -9,6 +9,8 @@
 
 #include <pthread.h>
 
+int sockfd;
+
 typedef struct {
 	int socket;
 	// May be extended later
@@ -43,6 +45,9 @@ void *handleRequestThread(void *requestData) {
         exit(1);
     }
 
+	shutdown(newsockfd, 2);
+	close(newsockfd);
+
 	return 0;
 }
 
@@ -62,8 +67,22 @@ void handleRequest(int socket) {
 	// Shouldnt wait for the end of the thread
 }
 
+void *controling(void *args) {
+	char ch;
+
+	do {
+		ch = getchar();
+	} while (ch != 'q');
+
+	printf("Exiting...\n");
+	shutdown(sockfd, 2);
+	close(sockfd);
+
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
-    int sockfd, newsockfd;
+    int newsockfd;
     uint16_t portno;
     unsigned int clilen;
     struct sockaddr_in serv_addr, cli_addr;
@@ -91,6 +110,16 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+	/* Creating a control thread */
+	int status;
+	pthread_t controlThread;
+
+	status = pthread_create(&controlThread, NULL, controling, NULL);
+	if (status != 0) {
+		printf("Cant create a control thread. Status: %d\n", status);
+		exit(2);
+	}
+
     /* Now start listening for the clients, here process will
        * go in sleep mode and will wait for the incoming connection
     */
@@ -100,15 +129,18 @@ int main(int argc, char *argv[]) {
 
     while(1) {
         /* Accept actual connection from the client */
-        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);	
+		
         if (newsockfd < 0) {
             perror("ERROR on accept");
-            exit(1);
+            break;
         }
 
 		handleRequest(newsockfd);
     }
 
-    return 0;
+	shutdown(newsockfd, 2);
+	close(newsockfd);
+	printf("The server is off now\n\n");
+	exit (0);
 }
