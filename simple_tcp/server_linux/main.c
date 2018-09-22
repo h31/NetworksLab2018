@@ -11,81 +11,77 @@ void closeSocket(int socks[], int lenght, int error, char* errorMsg);
 char* readAll(int socks[]);
 void sendAll(int socks[], char* buffer);
 
-int main(int argc, char *argv[]) {
+int main() {
 	int sockfd, newsockfd;
-    uint16_t portno;
-    unsigned int clilen;
-    char* buffer;
-    struct sockaddr_in serv_addr, cli_addr;
+	uint16_t portno;
+	unsigned int clilen;
+	char* buffer;
+	struct sockaddr_in serv_addr, cli_addr;
 
-    /* First call to socket() function */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	/* First call to socket() function */
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (sockfd < 0) {
-        perror("ERROR opening socket");
-        exit(1);
-    }
+	if (sockfd < 0) {
+		perror("ERROR opening socket");
+		exit(1);
+	}
 
-    /* Initialize socket structure */
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = 5001;
+	/* Initialize socket structure */
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	portno = 5001;
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
 
-    if(setsockopt(sockfd, SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),&(int){ 1 }, sizeof(int)) < 0){
+	if(setsockopt(sockfd, SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),&(int){ 1 }, sizeof(int)) < 0){
+		closeSocket((int[]){sockfd}, 1, 1, "ERROR on setsockopt");
+	}
+
+	/* Now bind the host address using bind() call.*/
+	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
 		int temp[] = {sockfd};
-	    closeSocket(temp, 1, 1, "ERROR on setsockopt");
-    }
+		closeSocket(temp, 1, 1, "ERROR on binding");
+	}
 
-    /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        int temp[] = {sockfd};
-	    closeSocket(temp, 1, 1, "ERROR on binding");
-    }
+	/* Now start listening for the clients, here process will
+	   * go in sleep mode and will wait for the incoming connection
+	*/
 
-    /* Now start listening for the clients, here process will
-       * go in sleep mode and will wait for the incoming connection
-    */
+	listen(sockfd, 5);
+	clilen = sizeof(cli_addr);
 
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
-
-    if(fork() > 0){
+	if(fork() > 0){
 		while(getchar() != 'q'){
 		}
 		int temp[] = {sockfd};
-	    closeSocket(temp, 1, 0, "");
-    }
+		closeSocket(temp, 1, 0, "");
+	}
 
-    while(1) {
+	while(1) {
 
-        /* Accept actual connection from the client */
-        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+		/* Accept actual connection from the client */
+		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-        if (newsockfd < 0) {
-            int temp[] = {sockfd, newsockfd};
-			closeSocket(temp, 2, 1, "ERROR on accept");
-        }
+		if (newsockfd < 0) {
+			closeSocket((int[]){sockfd, newsockfd}, 2, 1, "ERROR on accept");
+		}
 
 		switch(fork()) {
-		    case -1:
+			case -1:
 				perror("ERROR on fork");
 				break;
 			case 0:
 				close(sockfd);
 				/* If connection is established then start communicating */
-				int socksArray[] = {sockfd, newsockfd};
-				buffer = readAll(socksArray);
+				buffer = readAll((int[]){sockfd, newsockfd});
 
 				printf("Here is the message: %s\n", buffer);
 
 				/* Write a response to the client */
-				sendAll(socksArray, "I got your message");
-	
-				int temp[] = {newsockfd};
-				closeSocket(temp, 1, 0, "");
+				sendAll((int[]){sockfd, newsockfd}, "I got your message");
+
+				closeSocket((int[]){newsockfd}, 1, 0, "");
 				break;
 			default:
 				close(newsockfd);
@@ -93,10 +89,9 @@ int main(int argc, char *argv[]) {
 
 	}
 
-    int temp[] = {sockfd, newsockfd};
-	closeSocket(temp, 2, 0, "");
+	closeSocket((int[]){sockfd, newsockfd}, 2, 0, "");
 
-    return 0;
+	return 0;
 }
 
 void closeSocket(int socks[], int lenght, int error, char* errorMsg){
@@ -133,17 +128,17 @@ char* readAll(int socks[]){
 }
 
 void sendAll(int socks[], char* buffer){
-    int messageLength = strlen(buffer);
-    char toSend[5 + 256];
-    toSend[0] = ((messageLength >> 24) & 0xff) + '0';
-    toSend[1] = ((messageLength >> 16) & 0xff) + '0';
-    toSend[2] = ((messageLength >> 8) & 0xff) + '0';
-    toSend[3] = ((messageLength >> 0) & 0xff) + '0';
+	int messageLength = strlen(buffer);
+	char toSend[5 + 256];
+	toSend[0] = ((messageLength >> 24) & 0xff) + '0';
+	toSend[1] = ((messageLength >> 16) & 0xff) + '0';
+	toSend[2] = ((messageLength >> 8) & 0xff) + '0';
+	toSend[3] = ((messageLength >> 0) & 0xff) + '0';
 
-    strcat(toSend, buffer);
+	strcat(toSend, buffer);
 
-    int n = write(socks[1], toSend, strlen(toSend));
-    if (n < 0) {
-        closeSocket(socks, 2, 1, "ERROR writing to socket");
-    }
+	int n = write(socks[1], toSend, strlen(toSend));
+	if (n < 0) {
+		closeSocket(socks, 2, 1, "ERROR writing to socket");
+	}
 }
