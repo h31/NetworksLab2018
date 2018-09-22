@@ -44,31 +44,33 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    while(1) {
+        /* Accept actual connection from the client */
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-    if (newsockfd < 0) {
-        perror("ERROR on accept");
-        exit(1);
-    }
+        if (newsockfd < 0) {
+            perror("ERROR on accept");
+            exit(1);
+        }
 
-    /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = recv(newsockfd, buffer, 255, 0); // recv on Linux
+        /* If connection is established then start communicating */
+        bzero(buffer, 256);
+        n = recv(newsockfd, buffer, 255, 0); // recv on Linux
 
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
+        if (n < 0) {
+            perror("ERROR reading from socket");
+            exit(1);
+        }
 
-    printf("Here is the message: %s\n", buffer);
+        printf("Here is the message: %s\n", buffer);
 
-    /* Write a response to the client */
-    n = send(newsockfd, "I got your message", 18, 0); // send on Linux
+        /* Write a response to the client */
+        n = send(newsockfd, "I got your message", 18, 0); // send on Linux
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+        if (n < 0) {
+            perror("ERROR writing to socket");
+            exit(1);
+        }
     }
 
     return 0;
