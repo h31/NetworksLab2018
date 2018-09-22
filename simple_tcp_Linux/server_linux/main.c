@@ -4,9 +4,14 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+#include <memory.h>
 #include <string.h>
 #include <pthread.h>
+
+typedef struct Data_s{
+	char dataSize;
+	char data[256];
+} Data;
 
 void *connection_handler(void *);
 
@@ -72,7 +77,7 @@ int main(int argc, char *argv[]) {
 	    perror("Could not create thread");
 	    return 1;
 	}
-
+	pthread_detach(sn_thread);
 	
 	puts("Handler assigned");
     }
@@ -92,28 +97,52 @@ void *connection_handler(void *socket_desc)
 {
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
-    char buffer[256];
-    ssize_t n;
+    char* buffer = 0;
+    ssize_t n, bufferSize;
+    Data data;
 
-    bzero(buffer, 256);
-    n = read(sock, buffer, 255);
+    for(;;){
+        n = recv(sock, (char*)&data, sizeof(Data), NULL); 
+        if (n < 0) {
+	    perror("ERROR reading from socket");
+	    shutdown(sock, 2);
+	    close(sock);
+	    pthread_exit(1);
+        }
 
-    if (n < 0) {
-	perror("ERROR reading from socket");
-	shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
-    }
-    printf("Here is the message: %s\n", buffer);
+        if (n == 0) {
+	    perror("Connection closed");
+	    shutdown(sock, 2);
+	    close(sock);
+	    pthread_exit(2);
+        }
 
-    /* Write a response to the client */
-    n = write(sock, "I got your message", 18); // send on Windows
+        if (n-1 != data.dataSize) {
+	    perror("ERROR packet");
+	    shutdown(sock, 2);
+	    close(sock);
+	    pthread_exit(3);
+        }
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
+	if (data.dataSize == 0) {
+	    buffer = realloc(buffer, bufferSize + 1);
+            buffer[bufferSize] = 0;
+            printf("Here is the message: %s\n", buffer);
+            free(buffer);
+	}
+	else {
+	    if (buffer == 0){
+		buffer = malloc(data.dataSize);
+		memcpy(buffer, data.data, data.dataSize);
+		bufferSize = data.dataSize;
+	    }
+
+	    else{
+		buffer = realloc(buffer, bufferSize + data.dataSize);
+		memcpy(buffer + bufferSize, data.data, data.dataSize);
+		bufferSize += data.dataSize;
+	    }
+	}
     }
     shutdown(sock, 2);
     close(sock);

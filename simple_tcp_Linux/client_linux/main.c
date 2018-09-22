@@ -4,16 +4,21 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
+#include <memory.h>
 #include <string.h>
+
+typedef struct Data_s{
+	char dataSize;
+	char data[256];
+} Data;
+
+char buffer[65536];
 
 int main(int argc, char *argv[]) {
     int sockfd, n;
     uint16_t portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-
-    char buffer[256];
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -53,26 +58,28 @@ int main(int argc, char *argv[]) {
     */
 
     printf("Please enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
+    bzero(buffer, 65536);
+    fgets(buffer, 65535, stdin);
 
-    /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
+    ssize_t size = strlen(buffer);
+    ssize_t iter = 0;
+    Data data;
+    int rem; 
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+    while((rem = (int)size - iter) > 0){
+	if (rem > 255) data.dataSize = 255;
+	else data.dataSize = rem;
+	memcpy(data.data, buffer, data.dataSize);
+	int result = send(sockfd, (char*)&data, (int)data.dataSize + 1, NULL);
+	if (result <= 0) {
+	    perror("ERROR connection lost");
+            exit(2);
+	}
+	iter += data.dataSize;
+	usleep(0);
     }
 
-    /* Now read server response */
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("%s\n", buffer);
+    data.dataSize = 0;
+    send(sockfd, (char*)&data, 1, NULL);
     return 0;
 }
