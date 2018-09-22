@@ -7,11 +7,65 @@
 
 #include <string.h>
 
+#include <pthread.h>
+
+typedef struct {
+	int socket;
+	// May be extended later
+} requestDataStruct;
+
+void *handleRequestThread(void *requestData) {
+	char buffer[256];
+	int newsockfd, n;
+
+	requestDataStruct *rds = (requestDataStruct*) requestData;
+
+	newsockfd = rds->socket;
+
+	/* If connection is established then start communicating */
+    bzero(buffer, 256);
+    n = recv(newsockfd, buffer, 255, 0); // recv on Linux
+
+    if (n < 0) {
+        perror("ERROR reading from socket");
+        exit(1);
+    }
+
+    printf("Here is the message: %s\n", buffer);
+
+	sleep(5); // Operation imitation
+
+    /* Write a response to the client */
+    n = send(newsockfd, "I got your message", 18, 0); // send on Linux
+
+    if (n < 0) {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
+
+	return 0;
+}
+
+void handleRequest(int socket) {
+	requestDataStruct rds;
+	int status;
+	pthread_t aThread;
+
+	rds.socket = socket;
+
+	status = pthread_create(&aThread, NULL, handleRequestThread, (void*) &rds);
+	if (status != 0) {
+		printf("Cant create a thread. Status: %d\n", status);
+		exit(2);
+	}
+
+	// Shouldnt wait for the end of the thread
+}
+
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
-    char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
 
@@ -53,24 +107,7 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
-        /* If connection is established then start communicating */
-        bzero(buffer, 256);
-        n = recv(newsockfd, buffer, 255, 0); // recv on Linux
-
-        if (n < 0) {
-            perror("ERROR reading from socket");
-            exit(1);
-        }
-
-        printf("Here is the message: %s\n", buffer);
-
-        /* Write a response to the client */
-        n = send(newsockfd, "I got your message", 18, 0); // send on Linux
-
-        if (n < 0) {
-            perror("ERROR writing to socket");
-            exit(1);
-        }
+		handleRequest(newsockfd);
     }
 
     return 0;
