@@ -26,14 +26,14 @@ void *handleRequestThread(void *requestData) {
 
 	/* If connection is established then start communicating */
     bzero(buffer, 256);
-    n = recv(newsockfd, buffer, 255, 0); // recv on Linux
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("Here is the message: %s\n", buffer);
+	
+	while(1) {
+		n = recv(newsockfd, buffer, 255, 0); // recv on Linux
+		printf("Here is the message/part of the message: %s\n", buffer);
+		bzero(buffer, 256);
+		if (n < 255) break;
+	}
+	printf("---End of the input data---\n");
 
 	sleep(5); // Operation imitation
 

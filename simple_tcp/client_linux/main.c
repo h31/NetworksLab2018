@@ -13,8 +13,6 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[256];
-
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
         exit(0);
@@ -52,9 +50,13 @@ int main(int argc, char *argv[]) {
        * will be read by server
     */
 
+	char * buffer = NULL;
+	size_t m_length;
     printf("Please enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
+	if((m_length = getline(&buffer, &m_length, stdin) == -1)) {
+		perror("Error reading your message");
+		exit(1);
+	}
 
     /* Send message to the server */
     n = send(sockfd, buffer, strlen(buffer), 0);
@@ -65,15 +67,15 @@ int main(int argc, char *argv[]) {
     }
 
     /* Now read server response */
-    bzero(buffer, 256);
-    n = recv(sockfd, buffer, 255, 0);
+	bzero(buffer, 256);
 
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("%s\n", buffer);
+	while(1) {
+		n = recv(sockfd, buffer, 255, 0); // recv on Linux
+		printf("%s\n", buffer);
+		bzero(buffer, 256);
+		if (n < 255) break;
+	}
+	printf("---End of the response---\n");
 	
 	shutdown(sockfd, 2);
 	close(sockfd);
