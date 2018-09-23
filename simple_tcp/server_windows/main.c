@@ -109,14 +109,12 @@ DWORD WINAPI mainLoop() {
 
 	BOOL value = TRUE;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *) &value, sizeof(BOOL)) < 0) {
-		SOCKET temp[] = { sockfd };
-		closeSocket(temp, 1, 1, "ERROR on setsockopt");
+		closeSocket((SOCKET[]) {sockfd}, 1, 1, "ERROR on setsockopt");
 	}
 
 	/* Now bind the host address using bind() call.*/
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-		SOCKET temp[] = { sockfd };
-		closeSocket(temp, 1, 1, "ERROR on binding");
+		closeSocket((SOCKET[]) { sockfd }, 1, 1, "ERROR on binding");
 	}
 
 	/* Now start listening for the clients, here process will
@@ -142,8 +140,7 @@ DWORD WINAPI clientCommunication(LPVOID data) {
 	SOCKET newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
 	if (newsockfd == INVALID_SOCKET) {
-		SOCKET temp[] = { sockfd, newsockfd };
-		closeSocket(temp, 2, 1, "ERROR on accept");
+		closeSocket((SOCKET[]) { sockfd, newsockfd }, 2, 1, "ERROR on accept");
 	}
 
 	readyToAccept = TRUE;
