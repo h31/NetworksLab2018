@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
+    long messlen;
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,6 +55,13 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
+	if(fork() > 0){
+		while(getchar() != 'q'){
+		}
+		shutdown(sockfd, SHUT_RDWR);
+		close(sockfd);
+    }
+
 	while(1) {
 
 		/* Accept actual connection from the client */
@@ -79,7 +87,7 @@ int main(int argc, char *argv[]) {
 			n = read(newsockfd, buffer, 255); // recv on Windows
 
 			if (n < 0) {
-				perror("ERROR reading from socket");
+				perror("ERROR lenght of message");
 
 				shutdown(sockfd, SHUT_RDWR);
 				close(sockfd);
@@ -88,7 +96,25 @@ int main(int argc, char *argv[]) {
 				close(newsockfd);
 				exit(1);
 			}
-	
+			
+			messlen = atol(buffer);
+
+			bzero(buffer, 256);
+
+			for(int i = 0; i < messlen; i += n){
+				n = read(newsockfd, buffer + i, 255); 
+				if (n < 0) {
+					perror("ERROR of message");
+
+					shutdown(sockfd, SHUT_RDWR);
+					close(sockfd);
+
+					shutdown(newsockfd, SHUT_RDWR);
+					close(newsockfd);
+					exit(1);
+				}
+			}
+			
 			printf("Here is the message: %s\n", buffer);
 
 			/* Write a response to the client */

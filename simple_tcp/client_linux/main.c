@@ -9,11 +9,13 @@
 
 int main(int argc, char *argv[]) {
     int sockfd, n;
+    long messlen;
     uint16_t portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
     char buffer[256];
+    char bufforlen[sizeof(long)*8+1];
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -63,10 +65,24 @@ int main(int argc, char *argv[]) {
     fgets(buffer, 255, stdin);
 
     /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
+    messlen = strlen(buffer);
+
+    sprintf(bufforlen, "%d", messlen);
+
+    n = write(sockfd, bufforlen, strlen(bufforlen));
 
     if (n < 0) {
-        perror("ERROR writing to socket");
+        perror("ERROR writing to socket length of message");
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
+
+        exit(1);
+    }
+
+    n = write(sockfd, buffer, messlen);
+
+    if (n < 0) {
+        perror("ERROR writing to socket message");
 		shutdown(sockfd, SHUT_RDWR);
 		close(sockfd);
 
