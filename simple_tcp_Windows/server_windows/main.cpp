@@ -11,17 +11,24 @@ typedef struct Data_s{
 	char data[256];
 } Data;
 
-void *connection_handler(void *);
+DWORD WINAPI connection_handler(LPVOID temp);
 
 int main(int argc, char *argv[]) {
-    int sockfd, newsockfd;
+
+	WSADATA WSStartData; 
+	if (WSAStartup(MAKEWORD(2, 2), &WSStartData) != 0) {
+		perror("ERROR on WSAStartup");
+		exit(1);
+	}
+
+    SOCKET sockfd, newsockfd;
     unsigned short portno;
     unsigned int clilen;
     struct sockaddr_in serv_addr, cli_addr;
 
     /* First call to socket() function */
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) 
     {
         perror("ERROR opening socket");
         exit(1);
@@ -49,8 +56,8 @@ int main(int argc, char *argv[]) {
 
     if(listen(sockfd, 5) < 0)
     {
-	perror("listen");
-	exit(EXIT_FAILURE);
+		perror("listen");
+		exit(EXIT_FAILURE);
     }
 
     puts("Waiting for incoming connections");
@@ -83,10 +90,10 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
-void *connection_handler(void *socket_desc)
+DWORD WINAPI connection_handler(LPVOID temp)
 {
     //Get the socket descriptor
-    int sock = *(int*)socket_desc;
+    int sock = *(int*)temp;
     char* buffer = 0;
     size_t n, bufferSize;
     Data data;

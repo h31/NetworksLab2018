@@ -12,22 +12,29 @@ typedef struct Data_s{
 char buffer[65536];
 
 int main(int argc, char *argv[]) {
-    int sockfd;
-    uint16_t portno;
+    SOCKET sockfd;
+    short portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
+
+	WSADATA WSStartData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &WSStartData) != 0) {
+		perror("ERROR on WSAStartup");
+		exit(1);
+	}
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
         exit(0);
     }
 
-    portno = (uint16_t) atoi(argv[2]);
+    portno = (int) atoi(argv[2]);
 
     /* Create a socket point */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (sockfd < 0) {
+    if (sockfd == INVALID_SOCKET) {
         perror("ERROR opening socket");
         exit(1);
     }
@@ -36,16 +43,17 @@ int main(int argc, char *argv[]) {
 
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
+		closesocket(sockfd);
         exit(0);
     }
 
     memset((char *) &serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    memcpy(server->h_addr, (char *) &serv_addr.sin_addr.s_addr, (size_t) server->h_length);
+    memmove(server->h_addr, (char *) &serv_addr.sin_addr.s_addr, (size_t) server->h_length);
     serv_addr.sin_port = htons(portno);
 
     /* Now connect to the server */
-    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
         perror("ERROR connecting");
         exit(1);
     }
@@ -64,16 +72,16 @@ int main(int argc, char *argv[]) {
     int rem; 
 
     while((rem = (int)size - iter) > 0){
-	if (rem > 255) data.dataSize = 255;
-	else data.dataSize = rem;
-	memcpy(data.data, buffer, data.dataSize);
-	int result = send(sockfd, (char*)&data, (int)data.dataSize + 1, NULL);
-	if (result <= 0) {
-	    perror("ERROR connection lost");
-            exit(2);
-	}
-	iter += data.dataSize;
-	Sleep(0);
+		if (rem > 255) data.dataSize = 255;
+		else data.dataSize = rem;
+		memcpy(data.data, buffer, data.dataSize);
+		int result = send(sockfd, (char*)&data, (int)data.dataSize + 1, NULL);
+		if (result <= 0) {
+			perror("ERROR connection lost");
+			exit(2);
+		}
+		iter += data.dataSize;
+		Sleep(0);
     }
 
     data.dataSize = 0;
