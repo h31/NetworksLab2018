@@ -14,6 +14,8 @@
 
 int sockfd;
 
+int const MAX_SECONDS_READ_TIMEOUT = 5;
+
 int const MAX_CLIENT_COUNT = 10;
 int totalActiveClientsCount = 0;
 int isFinishing = FALSE;
@@ -42,8 +44,9 @@ void handleClientConnection(void* arg) {
 	int newsockfd = (int*) arg;
 	
 	struct timeval timeout;
-	timeout.tv_sec = 5;
+	timeout.tv_sec = MAX_SECONDS_READ_TIMEOUT;
 	timeout.tv_usec = 0;
+	// On timeout read returns -1
 	setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
 	
 	char buffer[256];
@@ -56,6 +59,7 @@ void handleClientConnection(void* arg) {
 	while (!isFinishing) {
 		// Start reading new message
 		bzero(buffer, sizeof(buffer));
+		
 		totalBytesCount = read(newsockfd, buffer, sizeof(buffer) - 1);
 		
 		if (totalBytesCount == -1) {
@@ -76,6 +80,7 @@ void handleClientConnection(void* arg) {
 			}
 			
 			additionalBytesCount = read(newsockfd, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount);
+			
 			if (additionalBytesCount == -1) {
 				continue;
 			} else if (additionalBytesCount <= 0) {
