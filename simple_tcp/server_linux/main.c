@@ -41,6 +41,11 @@ void cleanUpClientConnectionThread(int newsockfd) {
 void handleClientConnection(void* arg) {
 	int newsockfd = (int*) arg;
 	
+	struct timeval timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
+	setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+	
 	char buffer[256];
 	ssize_t totalBytesCount;
 	ssize_t additionalBytesCount;
@@ -53,7 +58,9 @@ void handleClientConnection(void* arg) {
 		bzero(buffer, sizeof(buffer));
 		totalBytesCount = read(newsockfd, buffer, sizeof(buffer) - 1);
 		
-		if (totalBytesCount <= 0) {
+		if (totalBytesCount == -1) {
+			continue;
+		} else if (totalBytesCount <= 0) {
 			cleanUpClientConnectionThread(newsockfd);
 		}
 		
@@ -69,9 +76,12 @@ void handleClientConnection(void* arg) {
 			}
 			
 			additionalBytesCount = read(newsockfd, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount);
-			if (additionalBytesCount <= 0) {
+			if (additionalBytesCount == -1) {
+				continue;
+			} else if (additionalBytesCount <= 0) {
 				cleanUpClientConnectionThread(newsockfd);
 			}
+
 			totalBytesCount = totalBytesCount + additionalBytesCount;
 			
 			printf("Read [%d] bytes of [%d] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
