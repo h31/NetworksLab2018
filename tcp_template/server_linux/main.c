@@ -4,9 +4,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
+#include<pthread.h>
 #include <string.h>
-
+void *connection_handler(void *);
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
@@ -43,20 +43,40 @@ int main(int argc, char *argv[]) {
 
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
+	pthread_t thread_num;
 
     /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
-    if (newsockfd < 0) {
+    while (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen))
+	{
+		if( pthread_create( &thread_num , NULL , connection_handler , (void*) &newsockfd) < 0)
+		{
+            perror("could not create thread");
+            return 1;
+        }
+    }
+	if (newsockfd < 0) {
         perror("ERROR on accept");
         exit(1);
-    }
 
-    /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
 
-    if (n < 0) {
+    return 0;
+}
+}
+void *connection_handler(void *sockfd)
+{
+    //Get the socket descriptor
+    int sockt = *(int*)sockfd;
+    int r_size,n;
+    char *new_message , buffer[256];
+     
+  
+    //Receive a message from client
+    while( (r_size = recv(sockt , buffer , 256 , 0)) > 0 )
+    {
+
+
+    if (r_size < 0) 
+	{
         perror("ERROR reading from socket");
         exit(1);
     }
@@ -64,12 +84,34 @@ int main(int argc, char *argv[]) {
     printf("Here is the message: %s\n", buffer);
 
     /* Write a response to the client */
-    n = write(newsockfd, "I got your message", 18); // send on Windows
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+		
+        //end of string marker
+		buffer[r_size] = '\0';
+		
+		//Send the message back to client
+		n=write(sockt, "I got your message", 18); // send on Windows
+
+    	if (n < 0) 
+		{
+        	perror("ERROR writing to socket");
+        	exit(1);
+    	}
+		
+		//clear the message buffer
+		memset(buffer, 0, 256);
     }
-
-    return 0;
-}
+     	if(r_size == 0)
+	 	{	
+        	puts("Client disconnect ");
+        	fflush(stdout);
+    	}
+    	else if(r_size == -1)
+    	{
+        	perror("Fail recv");
+   		 }
+    	free(sockfd);
+    	close(sockt);
+		pthread_exit(NULL);
+    	return 0;
+} 

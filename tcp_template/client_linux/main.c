@@ -51,7 +51,8 @@ int main(int argc, char *argv[]) {
     /* Now ask for a message from the user, this message
        * will be read by server
     */
-
+	while(1)
+	{
     printf("Please enter the message: ");
     bzero(buffer, 256);
     fgets(buffer, 255, stdin);
@@ -74,5 +75,8 @@ int main(int argc, char *argv[]) {
     }
 
     printf("%s\n", buffer);
+	}
+	shutdown(sockfd, SHUT_RDWR);
+	close(sockfd);
     return 0;
 }
