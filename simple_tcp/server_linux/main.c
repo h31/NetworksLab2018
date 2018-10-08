@@ -137,6 +137,7 @@ void acceptNewClients() {
 		if (nextClientThreadCreationResult != 0) {
 			printf("Error on creating client thread, error number: %d\r\n", nextClientThreadCreationResult);
 		} else {
+			pthread_detach(nextClientThread);
 			pthread_mutex_lock(&mutex);
 			totalActiveClientsCount++;
 			printf("Creating handler for newsockfd = %d\r\n", newsockfd);

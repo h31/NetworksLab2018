@@ -9,7 +9,7 @@
 
 #include <signal.h>
 
-#define IMITATE_PARTLY_SENDING
+//#define IMITATE_PARTLY_SENDING
 
 int sockfd;
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 	
 	while (1) {
 		printf("Please enter the message: ");
-		bzero(buffer, 256);
+		bzero(buffer, sizeof(buffer));
 		fgets(buffer + 1, sizeof(buffer) - 2, stdin);
 		
 		if (strstr(buffer + 1, "\\q") != NULL) {
