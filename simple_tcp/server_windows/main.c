@@ -1,73 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <netdb.h>
-#include <netinet/in.h>
-#include <unistd.h>
+#include <stdint.h>					// uint16_t
 
 #include <string.h>
 
-#include <pthread.h>
+#include <windows.h>
+#include <winsock2.h>
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 
-int sockfd;
+SOCKET sockfd;
 
 typedef struct {
-	int socket;
+	SOCKET socket;
 	// May be extended later
 } requestDataStruct;
 
-void *handleRequestThread(void *requestData) {
+DWORD WINAPI handleRequestThread(LPVOID requestData) {
 	char buffer[256];
-	int newsockfd, n;
+	SOCKET newsockfd;
+	int n;
 
-	requestDataStruct *rds = (requestDataStruct*) requestData;
+	requestDataStruct rds = *(requestDataStruct*)requestData;
 
-	newsockfd = rds->socket;
+	newsockfd = rds.socket;
 
 	/* If connection is established then start communicating */
-    bzero(buffer, 256);
-	
-	while(1) {
-		n = recv(newsockfd, buffer, 255, 0); // recv on Linux
+	bzero(buffer, 256);
+
+	while (1) {
+		n = recv(newsockfd, buffer, 255, 0); // recv on Windows
 		printf("Here is the message/part of the message: %s\n", buffer);
 		bzero(buffer, 256);
 		if (n < 255) break;
 	}
 	printf("---End of the input data---\n");
 
-	sleep(5); // Operation imitation
+	Sleep(5000); // Operation imitation
 
-    /* Write a response to the client */
-    n = send(newsockfd, "I got your message", 18, 0); // send on Linux
+	/* Write a response to the client */
+	n = send(newsockfd, "I got your message", 18, 0); // send on Windows
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
+	if (n < 0) {
+		perror("ERROR writing to socket");
+		exit(1);
+	}
 
-	shutdown(newsockfd, 2);
-	close(newsockfd);
+	closesocket(newsockfd);
 
 	return 0;
 }
 
-void handleRequest(int socket) {
+void handleRequest(SOCKET socket) {
 	requestDataStruct rds;
-	int status;
-	pthread_t aThread;
+	HANDLE handle_thread;
 
 	rds.socket = socket;
 
-	status = pthread_create(&aThread, NULL, handleRequestThread, (void*) &rds);
-	if (status != 0) {
-		printf("Cant create a thread. Status: %d\n", status);
-		exit(2);
-	}
+	handle_thread = CreateThread(NULL, 0, handleRequestThread, &rds, 0, NULL);
 
 	// Shouldnt wait for the end of the thread
 }
 
-void *controling(void *args) {
+DWORD WINAPI controling(LPVOID args) {
 	char ch;
 
 	do {
@@ -75,72 +70,78 @@ void *controling(void *args) {
 	} while (ch != 'q');
 
 	printf("Exiting...\n");
-	shutdown(sockfd, 2);
-	close(sockfd);
+	closesocket(sockfd);
 
 	return 0;
 }
 
 int main(int argc, char *argv[]) {
-    int newsockfd;
-    uint16_t portno;
-    unsigned int clilen;
-    struct sockaddr_in serv_addr, cli_addr;
-    ssize_t n;
+	WSADATA wsaData;
 
-    /* First call to socket() function */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	unsigned int t;
+	t = WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    if (sockfd < 0) {
-        perror("ERROR opening socket");
-        exit(1);
-    }
-
-    /* Initialize socket structure */
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = 5001;
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
-
-    /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR on binding");
-        exit(1);
-    }
-
-	/* Creating a control thread */
-	int status;
-	pthread_t controlThread;
-
-	status = pthread_create(&controlThread, NULL, controling, NULL);
-	if (status != 0) {
-		printf("Cant create a control thread. Status: %d\n", status);
-		exit(2);
+	if (t != 0) {
+		printf("WSAStartup failed: %ui\n", t);
+		exit(1);
 	}
 
-    /* Now start listening for the clients, here process will
-       * go in sleep mode and will wait for the incoming connection
-    */
+	//typedef uint16_t u_int16_t;
 
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
+	SOCKET newsockfd;
+	uint16_t portno;
+	int clilen;
+	struct sockaddr_in serv_addr, cli_addr;
+	int n;
 
-    while(1) {
-        /* Accept actual connection from the client */
-        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);	
-		
-        if (newsockfd < 0) {
-            perror("ERROR on accept");
-            break;
-        }
+	/* First call to socket() function */
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd == INVALID_SOCKET) {
+		perror("ERROR opening socket");
+		exit(1);
+	}
+
+	/* Initialize socket structure */
+	bzero((char *)&serv_addr, sizeof(serv_addr));
+	portno = 5001;
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+
+	/* Now bind the host address using bind() call.*/
+	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
+		perror("ERROR on binding");
+		exit(1);
+	}
+
+	/* Creating a control thread */
+	HANDLE handle_control;
+
+	handle_control = CreateThread(NULL, 0, controling, NULL, 0, NULL);
+
+	/* Now start listening for the clients, here process will
+	   * go in sleep mode and will wait for the incoming connection
+	*/
+
+	listen(sockfd, 5);
+	clilen = sizeof(cli_addr);
+
+	while (1) {
+		/* Accept actual connection from the client */
+		newsockfd = accept(sockfd, (SOCKADDR *)&cli_addr, &clilen);
+
+		if (newsockfd < 0) {
+			perror("ERROR on accept");
+			break;
+		}
 
 		handleRequest(newsockfd);
-    }
+	}
 
-	shutdown(newsockfd, 2);
-	close(newsockfd);
+	closesocket(newsockfd);
+	WSACleanup();
 	printf("The server is off now\n\n");
-	exit (0);
+	exit(0);
 }
