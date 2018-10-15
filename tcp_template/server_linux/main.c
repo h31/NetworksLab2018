@@ -16,24 +16,30 @@ void* connection_handler(void* arg) {
     char buffer[256];
 
 /* If connection is established then start communicating */
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255); // recv on Windows
+	while (1){
+		bzero(buffer, 256);
+		n = read(newsockfd, buffer, 255); // recv on Windows
 
-    if (n < 0) {
-        perror("ERROR reading from socket");  
-	exit(0);
-    }
+		if (n <= 0) {
+			perror("ERROR reading from socket");  
+			shutdown(newsockfd, SHUT_RDWR);
+			close(newsockfd);	       
+			pthread_exit(0);
+		}
 
-    printf("Here is the message: %s\n", buffer);
+		printf("Here is the message: %s\n", buffer);
 
-    /* Write a response to the client */
+		/* Write a response to the client */
+		
+		n = write(newsockfd, "I got your message", 18);
 
-    if (n <= 0) {
-        perror("ERROR writing to socket");
-	shutdown(newsockfd, SHUT_RDWR);
-	close(newsockfd);	       
-	pthread_exit(0);
-    }
+		if (n <= 0) {
+			perror("ERROR writing to socket");
+			shutdown(newsockfd, SHUT_RDWR);
+			close(newsockfd);	       
+			pthread_exit(0);
+		}
+	}
     shutdown(newsockfd, SHUT_RDWR);
     close(newsockfd);	       
     pthread_exit(0); 
@@ -76,28 +82,22 @@ int main(int argc, char *argv[]) {
        * go in sleep mode and will wait for the incoming connection
     */
 
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
 
-    while(1) {  
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
-    if (newsockfd < 0) {
-        perror("ERROR on accept");       
-	exit(1);
-    }
-
-    if(created_thread = pthread_create(&thread, NULL, connection_handler, (void*) newsockfd) <= 0)
-    {
-    perror("ERROR creating thread");
-    }
-
-    //pthread_exit(0);
-    }
-
-    //shutdown(sockfd, SHUT_RDWR),
-    //close(sockfd),
-    exit(0);
-    return 0;
+    while(1) {
+		listen(sockfd, 5);
+		clilen = sizeof(cli_addr);  
+		/* Accept actual connection from the client */
+		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+	
+		if (newsockfd <= 0) {
+			perror("ERROR on accept");       
+			exit(1);
+		}
+		created_thread = pthread_create(&thread, NULL, connection_handler, (void*) newsockfd);
+	
+		if(created_thread != 0){
+			perror("ERROR creating thread");
+		}
+	}
+    close(sockfd);
 }
