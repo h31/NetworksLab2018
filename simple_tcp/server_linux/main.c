@@ -43,6 +43,7 @@ void *communicateWithNewClient(void *args) {
     if (n < 0) {
         perror("ERROR reading from socket");
         endThread(newsockfd);
+        return 0;
     }
 
     realMsgLen = buffer[0];
@@ -55,6 +56,7 @@ void *communicateWithNewClient(void *args) {
         if (n < 0) {
             perror("ERROR reading from socket");
             endThread(newsockfd);
+            return 0;
         }
         strcat(msg, buffer + curMsgLen);
         curMsgLen += n;
@@ -70,6 +72,7 @@ void *communicateWithNewClient(void *args) {
     if (n < 0) {
         perror("ERROR writing to socket");
         endThread(newsockfd);
+        return 0;
     }
 
     endThread(newsockfd);
@@ -91,10 +94,16 @@ void *listenForConnection() {
 
     clilen = sizeof(cli_addr);
 
+    pthread_t communicationThread;
+
     while (serverListening) {
 
         /* Accept actual connection from the client */
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
+        if (!serverListening) {
+            break;
+        }
 
         if (newsockfd < 0) {
             perror("ERROR on accept");
@@ -103,7 +112,6 @@ void *listenForConnection() {
 
         printf("Accept connection\n");
 
-        pthread_t communicationThread;
         status = pthread_create(&communicationThread, NULL, communicateWithNewClient,&newsockfd);
         if (status != 0) {
             printf("Can't create thread, status = %d\n", status);
