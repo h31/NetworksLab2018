@@ -9,7 +9,7 @@
  
 #define SERVER "127.0.0.1"
 #define BUFLEN 256  //Max length of buffer
-#define PORT 8888   //The port on which to send data
+#define PORT 8080   //The port on which to send data
  
 void die(char *s, int socket)
 {
@@ -26,7 +26,7 @@ int main(void)
     char buf[BUFLEN];
     char message[BUFLEN];
  
-    if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
     {
         die("socket", s);
     }
@@ -44,7 +44,7 @@ int main(void)
     while(1)
     {
         printf("Enter message : ");
-        gets(message);
+        fgets(message, BUFLEN, stdin);
          
         //send the message
         if (sendto(s, message, strlen(message) , 0 , (struct sockaddr *) &si_other, slen)==-1)
@@ -61,7 +61,7 @@ int main(void)
             die("recvfrom()", s);
         }
          
-        puts(buf);
+        fputs(buf, stdout);
     }
  
     close(s);
