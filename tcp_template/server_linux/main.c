@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
         close_sock(sockfd);
         exit(1);
     }
+    
+    connection_handler(newsockfd);
 
     /* If connection is established then start communicating 
     bzero(buffer, 256);
