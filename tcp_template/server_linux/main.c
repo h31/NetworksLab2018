@@ -115,9 +115,8 @@ int main(int argc, char *argv[]) {
         close_sock(sockfd);
         exit(1);
         }
+            thread_request(newsockfd);
     }
-    
-    thread_request(newsockfd);
 
     /* If connection is established then start communicating 
     bzero(buffer, 256);
