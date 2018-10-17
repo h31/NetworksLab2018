@@ -10,7 +10,7 @@
 int sockfd;
 int clients = 0;
 
-//the trad function
+//the thread function
 void *connection_handler(void *);
 
 void close_sock(int sockfd) {
@@ -30,6 +30,20 @@ void thread_close(int newsockfd){
     close(newsockfd);
     clients--;
     pthread_exit(NULL);
+}
+
+void thread_request(int socket){
+    requestDataStruct rds;
+    pthread_t theThread;
+    int status;
+
+    rds.socket = socket;
+
+    status = pthread_create(&theThread, NULL, connection_handler, (void*) &rds);
+    if (status != 0) {
+    printf("Can't create a thread with status: %d\n", status);
+    exit(2);
+    }
 }
     
 
@@ -80,7 +94,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     
-  
+    thread_request(newsockfd);
 
     /* If connection is established then start communicating 
     bzero(buffer, 256);
@@ -111,6 +125,8 @@ void *connection_handler(void *sockfd)
     int sock = *(int*)sockfd;
     int size;
     char buffer[256];
+    
+    clients++;
 
     //Receive a message from client
     while( (size = read(sock , buffer , 256 )) > 0 )
