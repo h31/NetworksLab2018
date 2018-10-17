@@ -42,10 +42,23 @@ void thread_request(int socket){
     status = pthread_create(&theThread, NULL, connection_handler, (void*) &rds);
     if (status != 0) {
     printf("Can't create a thread with status: %d\n", status);
-    exit(2);
+    exit(1);
     }
 }
+
+void *thread_control(void *args) {
+    char n;
     
+    do {
+         n = getchar();
+    } while (n != 'q');
+     
+    printf("Exiting...\n"); 
+    shutdown(sockfd, 2);
+    close(sockfd);
+
+    return 0;
+}    
 
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd, *new_sock;
@@ -54,6 +67,8 @@ int main(int argc, char *argv[]) {
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
+    int status;
+    pthtred_t controling;
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,6 +93,12 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    status = pthread_create(&controling, NULL, thread_control, NULL);
+    if (status != 0) {
+    printf("Cant create a control thread. Status: %d\n", status);
+    exit(1);
+    }
+
     /* Now start listening for the clients, here process will
        * go in sleep mode and will wait for the incoming connection
     */
@@ -85,6 +106,7 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
+    while(1) {
     /* Accept actual connection from the client */
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
@@ -92,6 +114,7 @@ int main(int argc, char *argv[]) {
         perror("ERROR on accept");
         close_sock(sockfd);
         exit(1);
+        }
     }
     
     thread_request(newsockfd);
