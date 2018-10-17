@@ -10,19 +10,49 @@
 #include <pthread.h>
 
 int sockfd;
+#define max_clients 10
+#define true 1
+#define false 0
+int cliPorts[max_clients];
+int isActive[max_clients];	// bool
 
 typedef struct {
 	int socket;
 	// May be extended later
 } requestDataStruct;
 
+int addNewPortToList(int port) {
+	int i = 0;
+	for (; i < max_clients; i = i + 1) {
+		if (isActive[i] == false) {
+			isActive[i] = true;
+			cliPorts[i] = port;
+			return i;
+		}
+	}
+	printf("Cant create a new connection!");
+	exit(3);
+}
+
+void closeClientConnections() {
+	int i = 0;
+	for (; i < max_clients; i = i + 1) {
+		if (isActive[i] == true) {
+			shutdown(cliPorts[i], 2);
+			close(cliPorts[i]);
+		}
+	}
+	printf("Client connections have been closed...\n");
+}
+
 void *handleRequestThread(void *requestData) {
 	char buffer[256];
-	int newsockfd, n;
+	int newsockfd, n, boolplace;
 
 	requestDataStruct *rds = (requestDataStruct*) requestData;
 
 	newsockfd = rds->socket;
+	boolplace = addNewPortToList(newsockfd);
 
 	/* If connection is established then start communicating */
     bzero(buffer, 256);
@@ -47,6 +77,7 @@ void *handleRequestThread(void *requestData) {
 
 	shutdown(newsockfd, 2);
 	close(newsockfd);
+	isActive[boolplace] = false;
 
 	return 0;
 }
@@ -139,8 +170,7 @@ int main(int argc, char *argv[]) {
 		handleRequest(newsockfd);
     }
 
-	shutdown(newsockfd, 2);
-	close(newsockfd);
+	closeClientConnections();
 	printf("The server is off now\n\n");
 	exit (0);
 }
