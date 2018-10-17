@@ -15,6 +15,9 @@ typedef struct Data_s{
 
 void *connection_handler(void *);
 
+char recvbuf[sizeof(Data)*2];
+int recvbuflen = 0;
+
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
@@ -95,14 +98,14 @@ int main(int argc, char *argv[]) {
 
 void *connection_handler(void *socket_desc)
 {
-    //Get the socket descriptor
+    Data * bufdata = (Data *) recvbuf;
     int sock = *(int*)socket_desc;
     char* buffer = 0;
     ssize_t n, bufferSize;
     Data data;
 
     for(;;){
-        n = recv(sock, (char*)&data, sizeof(Data), NULL); 
+        n = recv(sock, recvbuf + recvbuflen, sizeof(Data), NULL); 
         if (n < 0) {
 	    perror("ERROR reading from socket");
 	    shutdown(sock, 2);
@@ -116,32 +119,32 @@ void *connection_handler(void *socket_desc)
 	    close(sock);
 	    pthread_exit(2);
         }
+	
+	recvbuflen+=n;	
 
-        if (n-1 != data.dataSize) {
-	    perror("ERROR packet");
-	    shutdown(sock, 2);
-	    close(sock);
-	    pthread_exit(3);
-        }
-
-	if (data.dataSize == 0) {
+	if (bufdata->dataSize == 0) {
 	    buffer = realloc(buffer, bufferSize + 1);
             buffer[bufferSize] = 0;
             printf("Here is the message: %s\n", buffer);
             free(buffer);
 	}
+
 	else {
+
 	    if (buffer == 0){
-		buffer = malloc(data.dataSize);
-		memcpy(buffer, data.data, data.dataSize);
-		bufferSize = data.dataSize;
+		buffer = malloc(bufdata->dataSize);
+		memcpy(buffer, bufdata->data, bufdata->dataSize);
+		bufferSize = bufdata->dataSize;
 	    }
 
 	    else{
-		buffer = realloc(buffer, bufferSize + data.dataSize);
-		memcpy(buffer + bufferSize, data.data, data.dataSize);
-		bufferSize += data.dataSize;
+		buffer = realloc(buffer, bufferSize + bufdata->dataSize);
+		memcpy(buffer + bufferSize, bufdata->data, bufdata->dataSize);
+		bufferSize += bufdata->dataSize;
 	    }
+
+	    memcpy(recvbuf, recvbuf + bufdata->dataSize + 1, bufdata->dataSize + 1);
+	    recvbuflen -= bufdata->dataSize + 1;
 	}
     }
     shutdown(sock, 2);

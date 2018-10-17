@@ -7,12 +7,14 @@
 #include <memory.h>
 #include <string.h>
 
+#define BUFSIZE 65535
+
 typedef struct Data_s{
 	char dataSize;
 	char data[256];
 } Data;
 
-char buffer[65536];
+char buffer[BUFSIZE];
 
 int main(int argc, char *argv[]) {
     int sockfd, n;
@@ -58,8 +60,8 @@ int main(int argc, char *argv[]) {
     */
 
     printf("Please enter the message: ");
-    bzero(buffer, 65536);
-    fgets(buffer, 65535, stdin);
+    bzero(buffer, BUFSIZE + 1);
+    fgets(buffer, BUFSIZE, stdin);
 
     ssize_t size = strlen(buffer);
     ssize_t iter = 0;
