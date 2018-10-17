@@ -73,17 +73,17 @@ int main(int argc, char *argv[]) {
     int result;	//result of creating thread
     result = pthread_create(&listen_thread, NULL, listen_func, &data); //create listen thread
     if(result != 0) {
-		perror("Error while creating listen thread");
-		shutdown(sockfd, 2);
-		close(sockfd);
-		exit(1);
+	perror("Error while creating listen thread");
+	shutdown(sockfd, 2);
+	close(sockfd);
+	exit(1);
     }
     
     /* if pressed q then exit program */
     int key = 0;
     while(1) {
-		key = getchar();
-		if(key == 'q') break;
+	key = getchar();
+	if(key == 'q') break;
     }
     shutdown(sockfd, 2);
     close(sockfd);
@@ -102,19 +102,19 @@ void *listen_func (void *arg) {
     	newsockfd = accept(data.sockfd, (struct sockaddr *) &data.cli_addr, &data.clilen);
     	
     	if (newsockfd < 0) {
-	    	perror("ERROR on accept");
-            pthread_exit(1);
+		perror("ERROR on accept");
+		pthread_exit(1);
     	}
 
-		/* Making new thread for messaging with client */
-		pthread_t thread; //thread for messaging
-		int result;	//result of thread creating
-		result = pthread_create(&thread, NULL, communicate_func, &newsockfd); //create new thread
-		if(result != 0) {
-			perror("Error while creating thread");
-			shutdown(newsockfd, 2);
-			close(newsockfd);
-		}
+	/* Making new thread for messaging with client */
+	pthread_t thread; //thread for messaging
+	int result;	//result of thread creating
+	result = pthread_create(&thread, NULL, communicate_func, &newsockfd); //create new thread
+	if(result != 0) {
+		perror("Error while creating thread");
+		shutdown(newsockfd, 2);
+		close(newsockfd);
+	}
 		
     }
     pthread_exit(0);
@@ -147,18 +147,18 @@ void *communicate_func (void *arg) {
 
     while (recieved_length < message_length) {
     	bzero(buffer, 256);
-		read_length = message_length - recieved_length;
-		if(read_length > 255) read_length = 255;
-		n = read(newsockfd, buffer, read_length);
+	read_length = message_length - recieved_length;
+	if(read_length > 255) read_length = 255;
+	n = read(newsockfd, buffer, read_length);
         if (n < 0) {
-	    	perror("ERROR reading from socket");
+		perror("ERROR reading from socket");
 	    	shutdown(newsockfd, 2);
 	    	close(newsockfd);
 	    	pthread_exit(1);
-		}
+	}
 
-		recieved_length += n;
-		strcat(output, buffer);
+	recieved_length += n;
+	strcat(output, buffer);
     }
     printf("%s\n", output);
 
@@ -169,10 +169,10 @@ void *communicate_func (void *arg) {
         perror("ERROR writing to socket");
         shutdown(newsockfd, 2);
         close(newsockfd);
-		pthread_exit(1);
+	pthread_exit(1);
     }
-
-	shutdown(newsockfd, 2);
+    
+    shutdown(newsockfd, 2);
     close(newsockfd); //close socket after messaging
     pthread_exit(0);
 }
