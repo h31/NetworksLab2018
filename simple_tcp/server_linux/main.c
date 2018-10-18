@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 int sockfd;//, newsockfd;
-int serverListening = 1;
+int serverWorking = 1;
 
 void closeSocket(int sockfd) {
     printf("Close socket\n\n");
@@ -29,45 +29,46 @@ void *communicateWithNewClient(void *args) {
     printf("Communication with client starts\n");
 
     int newsockfd = *(int*) args;
+    int msgSize;
     char buffer[256];
     ssize_t realMsgLen;
     ssize_t curMsgLen;
-    char msg[256];
     ssize_t n;
 
     bzero(buffer, 256);
-    bzero(msg, 256);
 
     n = read(newsockfd, buffer, 255); // recv on Windows
 
-    if (n < 0) {
+    if (n <= 0) {
         perror("ERROR reading from socket");
         endThread(newsockfd);
         return 0;
     }
 
-    realMsgLen = buffer[0];
+    realMsgLen = buffer[0] + 1;
     curMsgLen = n;
     printf("Message size = %zu, current size = %zu \n", realMsgLen, curMsgLen);
-    strcat(msg, buffer + 1);
 
     while(realMsgLen > curMsgLen) {
         n = read(newsockfd, buffer + curMsgLen, realMsgLen - curMsgLen); // recv on Windows
-        if (n < 0) {
+        if (n <= 0) {
             perror("ERROR reading from socket");
             endThread(newsockfd);
             return 0;
         }
-        strcat(msg, buffer + curMsgLen);
         curMsgLen += n;
         printf("Message size = %zu, current size = %zu \n", realMsgLen, curMsgLen);
-        //strcat(msg, buffer + n);
     }
 
-    printf("Here is the message: %s\n", msg);
+    printf("Here is the message: %s\n", buffer + 1);
+
+    bzero(buffer, 256);
+    strcat(buffer + 1, "I got your message");
+    msgSize = strlen(buffer + 1);
+    buffer[0] = msgSize;
 
     /* Write a response to the client */
-    n = write(newsockfd, "I got your message", 18); // send on Windows
+    n = write(newsockfd, buffer, strlen(buffer)); // send on Windows
 
     if (n < 0) {
         perror("ERROR writing to socket");
@@ -96,18 +97,18 @@ void *listenForConnection() {
 
     pthread_t communicationThread;
 
-    while (serverListening) {
+    while (serverWorking) {
 
         /* Accept actual connection from the client */
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-        if (!serverListening) {
+        if (!serverWorking) {
             break;
         }
 
         if (newsockfd < 0) {
             perror("ERROR on accept");
-            break;//endThread(sockfd);
+            break;
         }
 
         printf("Accept connection\n");
@@ -115,7 +116,6 @@ void *listenForConnection() {
         status = pthread_create(&communicationThread, NULL, communicateWithNewClient,&newsockfd);
         if (status != 0) {
             printf("Can't create thread, status = %d\n", status);
-            //exit(1);
         }
     }
 
@@ -160,19 +160,17 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    int checkKey = 0;
-
     while (1) {
         printf(">>>>>>>>WRITE q TO EXIT<<<<<<<<\n\n");
-        if ((checkKey = getchar()) == 'q') {
-            serverListening = 0;
+        if (getchar() == 'q') {
+            serverWorking = 0;
             break;
         }
     }
 
     closeSocket(sockfd);
     printf("BYE.\n");
-
+    sleep(1);
     return 0;
 }
 

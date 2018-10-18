@@ -14,8 +14,9 @@ int main(int argc, char *argv[]) {
     struct hostent *server;
 
     char buffer[256];
-    char msg[256];
     int msgSize;
+    int realMsgLen;
+    int curMsgLen;
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -58,16 +59,12 @@ int main(int argc, char *argv[]) {
 
     printf("Please enter the message: ");
     bzero(buffer, 256);
-    bzero(msg, 256);
-    fgets(buffer, 254, stdin);
-    msgSize = strlen(buffer);
-    msg[0] = msgSize;
-    //printf("message - %s, size = %d, b_size = %d\n\n", buffer, msgSize, sizeof(msg));
-    strcat(msg, buffer);
+    fgets(buffer + 1, 254, stdin);
+    msgSize = strlen(buffer + 1);
+    buffer[0] = msgSize;
 
     /* Send message to the server */
-    n = write(sockfd, msg, strlen(msg));
-
+    n = write(sockfd, buffer, strlen(buffer));
     if (n < 0) {
         perror("ERROR writing to socket1");
         close(sockfd);
@@ -78,13 +75,30 @@ int main(int argc, char *argv[]) {
     bzero(buffer, 256);
     n = read(sockfd, buffer, 255);
 
-    if (n < 0) {
+    if (n <= 0) {
         perror("ERROR reading from socket");
         close(sockfd);
         exit(1);
     }
 
-    printf("%s\n", buffer);
+    realMsgLen = buffer[0] + 1;
+    curMsgLen = n;
+    printf("Message size = %d, current size = %d \n", realMsgLen, curMsgLen);
+
+    while(realMsgLen > curMsgLen) {
+        printf ("N before =%d\n", n);
+        n = read(sockfd, buffer + curMsgLen, realMsgLen - curMsgLen); // recv on Windows
+        printf ("N after =%d\n", n);
+        if (n <= 0) {
+            perror("ERROR reading from socket");
+            close(sockfd);
+            exit(1);
+        }
+        curMsgLen += n;
+        printf("Message size = %d, current size = %d \n", realMsgLen, curMsgLen);
+    }
+
+    printf("%s\n", buffer + 1);
     close(sockfd);
 
     return 0;
