@@ -115,8 +115,8 @@ void *listen_func (void *arg) {
     	newsockfd = accept(data.sockfd, (struct sockaddr *) &data.cli_addr, &data.clilen);
     	
     	if (newsockfd < 0) {
-		perror("ERROR on accept");
-		pthread_exit(1);
+	    perror("ERROR on accept");
+	    pthread_exit(1);
     	}
 
 	logv("new connection accepted with fd=", newsockfd);
@@ -126,9 +126,9 @@ void *listen_func (void *arg) {
 	int result;	//result of thread creating
 	result = pthread_create(&thread, NULL, communicate_func, &newsockfd); //create new thread
 	if(result != 0) {
-		perror("Error while creating thread");
-		shutdown(newsockfd, 2);
-		close(newsockfd);
+	    perror("Error while creating thread");
+	    shutdown(newsockfd, 2);
+	    close(newsockfd);
 	}
 		
     }
@@ -168,19 +168,19 @@ void *communicate_func (void *arg) {
 	if(read_length > 255) read_length = 255;
 	n = read(newsockfd, buffer, read_length);
         if (n < 0) {
-		perror("ERROR reading from socket");
-	    	shutdown(newsockfd, 2);
-	    	close(newsockfd);
-	    	pthread_exit(1);
+	    perror("ERROR reading from socket");
+	    shutdown(newsockfd, 2);
+	    close(newsockfd);
+	    pthread_exit(1);
 	}
 	//n == 0 means that we read all bytes or client has closed connection
 	if(n == 0) {
-		if(received_length < message_length) {
-			printf("Error. Not all bytes have been read\n");
-		} else {
-			printf("All bytes have been read\n");
-		}
-		break;
+	    if(received_length < message_length) {
+		printf("Error. Not all bytes have been read\n");
+	    } else {
+		printf("All bytes have been read\n");
+	    }
+	    break;
 	}
 	received_length += n;
 	strcat(output, buffer);
@@ -199,7 +199,7 @@ void *communicate_func (void *arg) {
 	pthread_exit(1);
     }
     
-    log("closing connection");
+    logv("closing connection with fd = ", newsockfd);
 
     shutdown(newsockfd, 2);
     close(newsockfd); //close socket after messaging
