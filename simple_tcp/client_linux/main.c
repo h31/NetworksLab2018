@@ -45,18 +45,18 @@ int main(int argc, char *argv[]) {
     /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
+	shutdown(sockfd, 2);
+	close(sockfd);
         exit(1);
     }
 
     /* Now ask for a message from the user, this message
-       * will be read by server
-    */
+     * will be read by server
+     */
 
     printf("Please enter the message: ");
     bzero(buffer, 256);
     fgets(buffer, 255, stdin);
-    //bzero(buffer, 513);
-    //fgets(buffer, 512, stdin);
 
     int message_length = strlen(buffer);
     
@@ -64,8 +64,10 @@ int main(int argc, char *argv[]) {
     n = write(sockfd, (char*)&message_length, sizeof(int));
 
     if (n < 0) {
-	    perror("ERROR writing length to socket");
-	    exit(1);
+	perror("ERROR writing length to socket");
+	shutdown(sockfd, 2);
+	close(sockfd);
+	exit(1);
     }
 
     /* Send message to the server */
@@ -73,6 +75,8 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR writing to socket");
+	shutdown(sockfd, 2);
+	close(sockfd);
         exit(1);
     }
 
@@ -82,6 +86,8 @@ int main(int argc, char *argv[]) {
 
     if (n < 0) {
         perror("ERROR reading from socket");
+	shutdown(sockfd, 2);
+	close(sockfd);
         exit(1);
     }
 
