@@ -12,8 +12,16 @@
 /* function for messaging thread */
 void *communicate_func (void *arg);
 
-/*function for listen thread */
+/* function for listen thread */
 void *listen_func (void *arg);
+
+/* variable for enable/disable logging */
+int log_enabled = 0;
+
+/* function for logging */
+void logv(char* msg, int value);
+
+void log(char* msg);
 
 struct socket_data {
     int sockfd;
@@ -84,6 +92,11 @@ int main(int argc, char *argv[]) {
     while(1) {
 	key = getchar();
 	if(key == 'q') break;
+	// enable/disable logging
+	if(key == 'l') {
+	    log_enabled = !log_enabled;
+	    log("log enabled");
+	}
     }
     shutdown(sockfd, 2);
     close(sockfd);
@@ -106,6 +119,8 @@ void *listen_func (void *arg) {
 		pthread_exit(1);
     	}
 
+	logv("new connection accepted with fd=", newsockfd);
+
 	/* Making new thread for messaging with client */
 	pthread_t thread; //thread for messaging
 	int result;	//result of thread creating
@@ -127,7 +142,7 @@ void *communicate_func (void *arg) {
     char output[300]; //put message in buffer 
     ssize_t n;
     int message_length;
-    int recieved_length = 0;
+    int received_length = 0;
     int read_length = 0;
 
     bzero(output, 300);
@@ -137,7 +152,9 @@ void *communicate_func (void *arg) {
     /* If connection is established then start communicating 
        First we need to read length of message */
     n = read(newsockfd, (char*)&message_length, sizeof(int)); // recv on Windows
-    printf("length = %d", message_length);
+    
+    logv("length = ", message_length);
+
     if (n < 0) {
         perror("ERROR reading length of the message from socket");
         shutdown(newsockfd, 2);
@@ -145,9 +162,9 @@ void *communicate_func (void *arg) {
         pthread_exit(1);
     }
 
-    while (recieved_length < message_length) {
+    while (received_length < message_length) {
     	bzero(buffer, 256);
-	read_length = message_length - recieved_length;
+	read_length = message_length - received_length;
 	if(read_length > 255) read_length = 255;
 	n = read(newsockfd, buffer, read_length);
         if (n < 0) {
@@ -156,9 +173,19 @@ void *communicate_func (void *arg) {
 	    	close(newsockfd);
 	    	pthread_exit(1);
 	}
-
-	recieved_length += n;
+	//n == 0 means that we read all bytes or client has closed connection
+	if(n == 0) {
+		if(received_length < message_length) {
+			printf("Error. Not all bytes have been read\n");
+		} else {
+			printf("All bytes have been read\n");
+		}
+		break;
+	}
+	received_length += n;
 	strcat(output, buffer);
+
+	logv("received bytes: ", n);
     }
     printf("%s\n", output);
 
@@ -172,7 +199,21 @@ void *communicate_func (void *arg) {
 	pthread_exit(1);
     }
     
+    log("closing connection");
+
     shutdown(newsockfd, 2);
     close(newsockfd); //close socket after messaging
     pthread_exit(0);
+}
+
+void logv(char* msg, int value) {
+    if(log_enabled) {
+        printf("log: %s %d\n", msg, value);
+    }
+}
+
+void log(char* msg) {
+    if(log_enabled) {
+	printf("log: %s\n", msg);
+    }
 }
