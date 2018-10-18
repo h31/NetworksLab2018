@@ -38,11 +38,9 @@ void *communicateWithNewClient(void *args) {
     bzero(buffer, 256);
 
     n = read(newsockfd, buffer, 255); // recv on Windows
-
     if (n <= 0) {
         perror("ERROR reading from socket");
         endThread(newsockfd);
-        return 0;
     }
 
     realMsgLen = buffer[0] + 1;
@@ -50,12 +48,16 @@ void *communicateWithNewClient(void *args) {
     printf("Message size = %zu, current size = %zu \n", realMsgLen, curMsgLen);
 
     while(realMsgLen > curMsgLen) {
+        if (!serverWorking) {
+            endThread(newsockfd);
+        }
+
         n = read(newsockfd, buffer + curMsgLen, realMsgLen - curMsgLen); // recv on Windows
         if (n <= 0) {
             perror("ERROR reading from socket");
             endThread(newsockfd);
-            return 0;
         }
+
         curMsgLen += n;
         printf("Message size = %zu, current size = %zu \n", realMsgLen, curMsgLen);
     }
@@ -69,11 +71,9 @@ void *communicateWithNewClient(void *args) {
 
     /* Write a response to the client */
     n = write(newsockfd, buffer, strlen(buffer)); // send on Windows
-
     if (n < 0) {
         perror("ERROR writing to socket");
         endThread(newsockfd);
-        return 0;
     }
 
     endThread(newsockfd);
@@ -98,7 +98,6 @@ void *listenForConnection() {
     pthread_t communicationThread;
 
     while (serverWorking) {
-
         /* Accept actual connection from the client */
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
@@ -131,7 +130,6 @@ int main(int argc, char *argv[]) {
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
     if (sockfd < 0) {
         perror("ERROR opening socket");
         exit(1);

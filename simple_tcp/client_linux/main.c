@@ -27,14 +27,12 @@ int main(int argc, char *argv[]) {
 
     /* Create a socket point */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
     if (sockfd < 0) {
         perror("ERROR opening socket");
         exit(1);
     }
 
     server = gethostbyname(argv[1]);
-
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
         close(sockfd);
@@ -73,8 +71,8 @@ int main(int argc, char *argv[]) {
 
     /* Now read server response */
     bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
 
+    n = read(sockfd, buffer, 255);
     if (n <= 0) {
         perror("ERROR reading from socket");
         close(sockfd);
@@ -86,14 +84,13 @@ int main(int argc, char *argv[]) {
     printf("Message size = %d, current size = %d \n", realMsgLen, curMsgLen);
 
     while(realMsgLen > curMsgLen) {
-        printf ("N before =%d\n", n);
         n = read(sockfd, buffer + curMsgLen, realMsgLen - curMsgLen); // recv on Windows
-        printf ("N after =%d\n", n);
         if (n <= 0) {
             perror("ERROR reading from socket");
             close(sockfd);
             exit(1);
         }
+
         curMsgLen += n;
         printf("Message size = %d, current size = %d \n", realMsgLen, curMsgLen);
     }
