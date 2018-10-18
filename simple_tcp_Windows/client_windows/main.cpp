@@ -1,15 +1,21 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <stdio.h>
 
 #include <WinSock2.h>
 #include <string.h>
 #include <thread>
 
+#pragma comment(lib, "Ws2_32.lib")
+
+#define BUFSIZE 65535
+
 typedef struct Data_s{
 	char dataSize;
 	char data[256];
 } Data;
 
-char buffer[65536];
+char buffer[BUFSIZE];
 
 int main(int argc, char *argv[]) {
     SOCKET sockfd;
@@ -31,7 +37,6 @@ int main(int argc, char *argv[]) {
 
     portno = (int) atoi(argv[2]);
 
-    /* Create a socket point */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd == INVALID_SOCKET) {
@@ -52,19 +57,15 @@ int main(int argc, char *argv[]) {
     memmove(server->h_addr, (char *) &serv_addr.sin_addr.s_addr, (size_t) server->h_length);
     serv_addr.sin_port = htons(portno);
 
-    /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
         perror("ERROR connecting");
+		closesocket(sockfd);
         exit(1);
     }
 
-    /* Now ask for a message from the user, this message
-       * will be read by server
-    */
-
     printf("Please enter the message: ");
-    memset(buffer, 0, 65536);
-    fgets(buffer, 65535, stdin);
+    memset(buffer, 0, BUFSIZE + 1);
+    fgets(buffer, BUFSIZE, stdin);
 
     size_t size = strlen(buffer);
     size_t iter = 0;
@@ -76,8 +77,9 @@ int main(int argc, char *argv[]) {
 		else data.dataSize = rem;
 		memcpy(data.data, buffer, data.dataSize);
 		int result = send(sockfd, (char*)&data, (int)data.dataSize + 1, NULL);
-		if (result <= 0) {
+		if (result < 0) {
 			perror("ERROR connection lost");
+			closesocket(sockfd);
 			exit(2);
 		}
 		iter += data.dataSize;
