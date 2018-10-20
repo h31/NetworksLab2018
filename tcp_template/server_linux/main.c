@@ -76,10 +76,13 @@ void *connection_handler(void *sockfd)
     //Receive a message from client
     while( (received_size = recv(sockt , buffer , 256 , 0)) > 0 )
     {
+	// symbol of message end	
+	buffer[received_size] = '\0'; 
         //Send the message back to client
         write(sockt , buffer , strlen(buffer));
         printf("Here is the message: %s\n", buffer);
-		memset(buffer ,'\0', 256);
+	memset(buffer ,'\0', 256);
+	
     }
 
     if(received_size == 0)
