@@ -9,7 +9,7 @@
 
 
 int main(int argc, char *argv[]) {
-    int sockfd,received_size;
+    int sockfd,received_size,ss;
     uint16_t portno;
     unsigned int clilen;
     char buffer[256];
@@ -45,14 +45,20 @@ int main(int argc, char *argv[]) {
 		while((received_size = recvfrom(sockfd , buffer , 256 , 0,(struct sockaddr *) &cli_addr, &clilen)) > 0 )
 		{
         //Send the message back to client
-        	sendto(sockfd , buffer , received_size,0,(struct sockaddr*) &cli_addr, clilen);
+        	if(sendto(sockfd , buffer , received_size,0,(struct sockaddr*) &cli_addr, clilen)<0)
+			{
+				perror("ERROR send");
+				exit(1);
+			}
+			buffer[n] = '\0';
         	printf("Here is the message: %s\n", buffer);
 			memset(buffer ,'\0', 256);
-			printf("r_size = %d",received_size);
+			buffer[received_size] = '\0';
 		}
-    	else if(received_size == -1)
+    	if(received_size == -1)
     	{
-       	 perror("ERROR recv");
+       		perror("ERROR recv");
+			exit(1);
 		}
 		free(sockfd)
 		close(sockfd);

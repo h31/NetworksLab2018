@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        }
+    }
 		shutdown(sockfd, SHUT_RDWR);
     	close(sockfd);
     	return 0;
