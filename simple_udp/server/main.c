@@ -52,8 +52,10 @@ void *communicateWithClients() {
         }
 
         packet_addr = inet_ntoa(cli_addr.sin_addr);
-		if (packet_addr == NULL)
-			perror("ERROR on inet_ntoa\n");
+        if (packet_addr == NULL) {
+            perror("ERROR on inet_ntoa");
+        }
+
 
         printf("Message from: %s\n", packet_addr);
         printf("Here is the message: %s\n", buffer);
