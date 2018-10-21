@@ -3,5 +3,5 @@ project(client_linux)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 
-set(SOURCE_FILES main.c)
+set(SOURCE_FILES ../util_linux/util_linux.h ../util_linux/util_linux.c main.c)
 add_executable(client_linux ${SOURCE_FILES})
