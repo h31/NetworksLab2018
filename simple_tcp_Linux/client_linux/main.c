@@ -9,10 +9,14 @@
 
 #define BUFSIZE 65535
 
+#pragma pack(push, 1);
+
 typedef struct Data_s{
 	char dataSize;
 	char data[256];
 } Data;
+
+#pragma pack(pop);
 
 char buffer[BUFSIZE];
 
@@ -41,6 +45,8 @@ int main(int argc, char *argv[]) {
 
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
+	close(sockfd);
+	shutdown(sockfd, 2);
         exit(0);
     }
 
@@ -52,6 +58,8 @@ int main(int argc, char *argv[]) {
     /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
+	close(sockfd);
+	shutdown(sockfd, 2);
         exit(1);
     }
 
@@ -75,6 +83,8 @@ int main(int argc, char *argv[]) {
 	int result = send(sockfd, (char*)&data, (int)data.dataSize + 1, NULL);
 	if (result <= 0) {
 	    perror("ERROR connection lost");
+	    close(sockfd);
+	    shutdown(sockfd, 2);
             exit(2);
 	}
 	iter += data.dataSize;
@@ -83,5 +93,7 @@ int main(int argc, char *argv[]) {
 
     data.dataSize = 0;
     send(sockfd, (char*)&data, 1, NULL);
+    close(sockfd);
+    shutdown(sockfd, 2);
     return 0;
 }

@@ -8,15 +8,16 @@
 #include <string.h>
 #include <pthread.h>
 
+#pragma pack(push, 1);
+
 typedef struct Data_s{
 	char dataSize;
 	char data[256];
 } Data;
 
-void *connection_handler(void *);
+#pragma pack(pop);
 
-char recvbuf[sizeof(Data)*2];
-int recvbuflen = 0;
+void *connection_handler(void *);
 
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
@@ -42,16 +43,17 @@ int main(int argc, char *argv[]) {
 
      if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
     	perror("ERROR on setsockopt");
-    	shutdown(sockfd, 2);
     	close(sockfd);
+        shutdown(sockfd, 2);
+	exit(1);
     }
 
     /* Now bind the host address using bind() call.*/
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
     {
         perror("ERROR on binding");
-	shutdown(sockfd, 2);
-    	close(sockfd);
+	close(sockfd);
+        shutdown(sockfd, 2);
         exit(1);
     }
 
@@ -62,6 +64,8 @@ int main(int argc, char *argv[]) {
     if(listen(sockfd, 5) < 0)
     {
 	perror("listen");
+	close(sockfd);
+        shutdown(sockfd, 2);
 	exit(EXIT_FAILURE);
     }
 
@@ -78,6 +82,8 @@ int main(int argc, char *argv[]) {
 	if( pthread_create( &sn_thread, NULL, connection_handler, &newsockfd) < 0)
 	{
 	    perror("Could not create thread");
+	    close(sockfd);
+    	    shutdown(sockfd, 2);
 	    return 1;
 	}
 	pthread_detach(sn_thread);
@@ -91,13 +97,15 @@ int main(int argc, char *argv[]) {
 	return 1;
     }
 
-    shutdown(sockfd, 2);
     close(sockfd);
+    shutdown(sockfd, 2);
     exit(0);
 }
 
 void *connection_handler(void *socket_desc)
 {
+    char recvbuf[sizeof(Data)*2];
+    int recvbuflen = 0;
     Data * bufdata = (Data *) recvbuf;
     int sock = *(int*)socket_desc;
     char* buffer = 0;
@@ -108,15 +116,16 @@ void *connection_handler(void *socket_desc)
         n = recv(sock, recvbuf + recvbuflen, sizeof(Data), NULL); 
         if (n < 0) {
 	    perror("ERROR reading from socket");
-	    shutdown(sock, 2);
 	    close(sock);
+	    shutdown(sock, 2);
 	    pthread_exit(1);
         }
 
         if (n == 0) {
 	    perror("Connection closed");
-	    shutdown(sock, 2);
+	    fflush(stdout);
 	    close(sock);
+	    shutdown(sock, 2);
 	    pthread_exit(2);
         }
 	
@@ -126,6 +135,7 @@ void *connection_handler(void *socket_desc)
 	    buffer = realloc(buffer, bufferSize + 1);
             buffer[bufferSize] = 0;
             printf("Here is the message: %s\n", buffer);
+	    fflush(stdout);
             free(buffer);
 	}
 
@@ -147,7 +157,7 @@ void *connection_handler(void *socket_desc)
 	    recvbuflen -= bufdata->dataSize + 1;
 	}
     }
-    shutdown(sock, 2);
     close(sock);
+    shutdown(sock, 2);
     pthread_exit(0);
 }
