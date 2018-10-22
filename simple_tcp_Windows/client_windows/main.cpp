@@ -7,6 +7,7 @@
 #include <thread>
 
 #pragma comment(lib, "Ws2_32.lib")
+#pragma pack(push, 1)
 
 #define BUFSIZE 65535
 
@@ -14,6 +15,8 @@ typedef struct Data_s{
 	char dataSize;
 	char data[256];
 } Data;
+
+#pragma pack(pop)
 
 char buffer[BUFSIZE];
 
@@ -49,6 +52,7 @@ int main(int argc, char *argv[]) {
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
 		closesocket(sockfd);
+		shutdown(sockfd, 2);
         exit(0);
     }
 
@@ -60,6 +64,7 @@ int main(int argc, char *argv[]) {
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
         perror("ERROR connecting");
 		closesocket(sockfd);
+		shutdown(sockfd, 2);
         exit(1);
     }
 
@@ -80,6 +85,7 @@ int main(int argc, char *argv[]) {
 		if (result < 0) {
 			perror("ERROR connection lost");
 			closesocket(sockfd);
+			shutdown(sockfd, 2);
 			exit(2);
 		}
 		iter += data.dataSize;
@@ -88,5 +94,7 @@ int main(int argc, char *argv[]) {
 
     data.dataSize = 0;
     send(sockfd, (char*)&data, 1, NULL);
+	closesocket(sockfd);
+	shutdown(sockfd, 2);
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <thread>
 
 #pragma comment(lib, "WS2_32.lib")
+#pragma pack(push, 1)
 
 using namespace std;
 
@@ -13,10 +14,9 @@ typedef struct Data_s{
 	char data[256];
 } Data;
 
-DWORD WINAPI connection_handler(LPVOID temp);
+#pragma pack(pop)
 
-char recvbuf[sizeof(Data)*2];
-int recvbuflen = 0;
+DWORD WINAPI connection_handler(LPVOID temp);
 
 int main(int argc, char *argv[]) {
 
@@ -63,6 +63,8 @@ int main(int argc, char *argv[]) {
     if(listen(sockfd, 5) < 0)
     {
 		perror("listen");
+		closesocket(sockfd);
+		shutdown(sockfd, 2);
 		exit(EXIT_FAILURE);
     }
 
@@ -79,6 +81,8 @@ int main(int argc, char *argv[]) {
 		if(sn_thread.joinable())
 		{
 			perror("Could not create thread");
+			closesocket(sockfd);
+			shutdown(sockfd, 2);
 			return 1;
 		}
 		sn_thread.detach();
@@ -98,6 +102,8 @@ int main(int argc, char *argv[]) {
 
 DWORD WINAPI connection_handler(LPVOID temp)
 {
+	char recvbuf[sizeof(Data)*2];
+	int recvbuflen = 0;
     Data * bufdata = (Data *) recvbuf;
     int sock = *(int*)temp;
     char* buffer = 0;
@@ -114,6 +120,7 @@ DWORD WINAPI connection_handler(LPVOID temp)
 
         if (n == 0) {
 			perror("Connection closed");
+			fflush(stdout);
 			closesocket(sock);
 			shutdown(sock, 2);
 			return 0;
