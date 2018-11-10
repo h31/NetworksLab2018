@@ -1,15 +1,12 @@
-/*
-    Simple udp client
-*/
-#include<stdio.h> //printf
-#include<string.h> //memset
-#include<stdlib.h> //exit(0);
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
 #include<arpa/inet.h>
 #include<sys/socket.h>
  
 #define SERVER "127.0.0.1"
-#define BUFLEN 256  //Max length of buffer
-#define PORT 8080   //The port on which to send data
+#define BUFLEN 256
+#define PORT 8000
  
 void die(char *s, int socket)
 {
@@ -46,16 +43,12 @@ int main(void)
         printf("Enter message : ");
         fgets(message, BUFLEN, stdin);
          
-        //send the message
         if (sendto(s, message, strlen(message) , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()", s);
         }
          
-        //receive a reply and print it
-        //clear the buffer by filling null, it might have previously received data
         memset(buf,'\0', BUFLEN);
-        //try to receive some data, this is a blocking call
         if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == -1)
         {
             die("recvfrom()", s);
