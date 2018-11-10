@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
-     if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
+    if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
     	perror("ERROR on setsockopt");
     	close(sockfd);
         shutdown(sockfd, 2);
@@ -110,7 +110,6 @@ void *connection_handler(void *socket_desc)
     int sock = *(int*)socket_desc;
     char* buffer = 0;
     ssize_t n, bufferSize;
-    Data data;
 
     for(;;){
         n = recv(sock, recvbuf + recvbuflen, sizeof(Data), NULL); 
