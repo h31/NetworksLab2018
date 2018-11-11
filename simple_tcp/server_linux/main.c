@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
-	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, & (int) {1}, sizeof(int)) < 0) {
-    	perror("ERROR on setsockopt");
-    	closeSocket(sockfd);
-    	
-		exit(1);
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, & (int) {1}, sizeof(int)) < 0) {
+        perror("ERROR on setsockopt");
+        closeSocket(sockfd);
+        
+        exit(1);
     }
 
     /* Now bind the host address using bind() call.*/
@@ -55,51 +55,51 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-	if(fork() > 0){
-		while(getchar() != 'q'){
-		}
-		closeSocket(sockfd);		
+    if(fork() > 0){
+        while(getchar() != 'q'){
+        }
+        closeSocket(sockfd);        
     }
 
-	while(1) {
+    while(1) {
 
-		/* Accept actual connection from the client */
-		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        /* Accept actual connection from the client */
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-		if (newsockfd < 0) {
-		    perror("ERROR on accept");
-			closeSocket(sockfd);
-			
-		    exit(1);
-		}
+        if (newsockfd < 0) {
+            perror("ERROR on accept");
+            closeSocket(sockfd);
+            
+            exit(1);
+        }
 
-		switch(fork()) {
+        switch(fork()) {
 
-			case -1:
-				perror("ERROR on fork");
-				break;
+            case -1:
+                perror("ERROR on fork");
+                break;
 
-			case 0:
-				close(sockfd);
+            case 0:
+                close(sockfd);
 
-				/*Get the message from client*/
-				buffer = readMessage(sockfd, newsockfd);
-				printf("Here is the message: %s\n", buffer);
-				free(buffer);
+                /*Get the message from client*/
+                buffer = readMessage(sockfd, newsockfd);
+                printf("Here is the message: %s\n", buffer);
+                free(buffer);
 
-				/* Write a response to the client */
-				writeMessage(newsockfd, "I GOT YOUR MESSAGE");
-				closeSocket(newsockfd);
-				
-				exit(0);
+                /* Write a response to the client */
+                writeMessage(newsockfd, "I GOT YOUR MESSAGE");
+                closeSocket(newsockfd);
+                
+                exit(0);
 
-			default:
-				close(newsockfd);
-		}  
-	}
-	
-	closeSocket(newsockfd);
-	closeSocket(sockfd);
+            default:
+                close(newsockfd);
+        }  
+    }
+    
+    closeSocket(newsockfd);
+    closeSocket(sockfd);
 
     return 0;
 }
@@ -113,39 +113,39 @@ void closeSocket (int sock) {
 
 char* readMessage (int sock, int newsock) {
 
-	char* buffer = (char*)calloc(256, sizeof(char));
-	char* bufForLen = (char*)calloc(4, sizeof(char));
-	uint32_t messlen;
+    char* buffer = (char*)calloc(256, sizeof(char));
+    char* bufForLen = (char*)calloc(4, sizeof(char));
+    uint32_t messlen;
 
-	/* Read length of message from the client */
-	ssize_t n = read(newsock, bufForLen, 4); 
+    /* Read length of message from the client */
+    ssize_t n = read(newsock, bufForLen, 4); 
 
-	if (n < 0) {
-		perror("ERROR lenght of message");
-		closeSocket(sock);
-		closeSocket(newsock);
-		
-		exit(1);
-	}
-	
-	messlen = atol(bufForLen);
-	free(bufForLen);
+    if (n < 0) {
+        perror("ERROR lenght of message");
+        closeSocket(sock);
+        closeSocket(newsock);
+        
+        exit(1);
+    }
+    
+    messlen = atol(bufForLen);
+    free(bufForLen);
 
-	/* Read message from the client */
-	for(unsigned int i = 0; i < messlen; i += n) {
+    /* Read message from the client */
+    for(unsigned int i = 0; i < messlen; i += n) {
 
-		n = read(newsock, buffer + i, 255); 
+        n = read(newsock, buffer + i, 255); 
 
-		if (n < 0) {
-			perror("ERROR of message");
-			closeSocket(sock);
-			closeSocket(newsock);
-			
-			exit(1);
-		}
-	}
-	
-	return buffer;
+        if (n < 0) {
+            perror("ERROR of message");
+            closeSocket(sock);
+            closeSocket(newsock);
+            
+            exit(1);
+        }
+    }
+    
+    return buffer;
 
 }
 
