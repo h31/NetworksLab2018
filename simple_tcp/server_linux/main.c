@@ -7,15 +7,17 @@
 
 #include <string.h>
 
+void closeSocket (int socket);
+void writeMessage(int newsock, char* buffer);
+char* readMessage (int sock, int newsock);
+
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
-    char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
-    ssize_t n;
-    long messlen;
-
+    char* buffer;
+    
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -32,34 +34,31 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
-	if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
+	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, & (int) {1}, sizeof(int)) < 0) {
     	perror("ERROR on setsockopt");
-    	shutdown(sockfd, SHUT_RDWR);
-    	close(sockfd);
+    	closeSocket(sockfd);
+    	
 		exit(1);
     }
 
     /* Now bind the host address using bind() call.*/
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR on binding");
+        closeSocket(sockfd);
 
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
         exit(1);
     }
 
     /* Now start listening for the clients, here process will
        * go in sleep mode and will wait for the incoming connection
     */
-
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
 	if(fork() > 0){
 		while(getchar() != 'q'){
 		}
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
+		closeSocket(sockfd);		
     }
 
 	while(1) {
@@ -69,80 +68,112 @@ int main(int argc, char *argv[]) {
 
 		if (newsockfd < 0) {
 		    perror("ERROR on accept");
-
-			shutdown(sockfd, SHUT_RDWR);
-			close(sockfd);
+			closeSocket(sockfd);
+			
 		    exit(1);
 		}
 
 		switch(fork()) {
+
 			case -1:
-			perror("ERROR on fork");
-			break;
+				perror("ERROR on fork");
+				break;
 
 			case 0:
-			close(sockfd);
-			/* If connection is established then start communicating */
-			bzero(buffer, 256);
-			n = read(newsockfd, buffer, 255); // recv on Windows
-
-			if (n < 0) {
-				perror("ERROR lenght of message");
-
-				shutdown(sockfd, SHUT_RDWR);
 				close(sockfd);
 
-				shutdown(newsockfd, SHUT_RDWR);
-				close(newsockfd);
-				exit(1);
-			}
-			
-			messlen = atol(buffer);
+				/*Get the message from client*/
+				buffer = readMessage(sockfd, newsockfd);
+				printf("Here is the message: %s\n", buffer);
+				free(buffer);
 
-			bzero(buffer, 256);
+				/* Write a response to the client */
+				writeMessage(newsockfd, "I GOT YOUR MESSAGE");
+				closeSocket(newsockfd);
+				
+				exit(0);
 
-			for(int i = 0; i < messlen; i += n){
-				n = read(newsockfd, buffer + i, 255); 
-				if (n < 0) {
-					perror("ERROR of message");
-
-					shutdown(sockfd, SHUT_RDWR);
-					close(sockfd);
-
-					shutdown(newsockfd, SHUT_RDWR);
-					close(newsockfd);
-					exit(1);
-				}
-			}
-			
-			printf("Here is the message: %s\n", buffer);
-
-			/* Write a response to the client */
-			n = write(newsockfd, "I got your message", 18); // send on Windows
-
-			if (n < 0) {
-				perror("ERROR writing to socket");
-
-				shutdown(sockfd, SHUT_RDWR);
-				close(sockfd);
-
-				shutdown(newsockfd, SHUT_RDWR);
-				close(newsockfd);
-				exit(1);
-			}
-			close(newsockfd);
-			
-			exit(0);
 			default:
-			close(newsockfd);
+				close(newsockfd);
 		}  
 	}
 	
-	shutdown(newsockfd, SHUT_RDWR);
-	close(newsockfd);
-
-	shutdown(sockfd, SHUT_RDWR);
-	close(sockfd);
+	closeSocket(newsockfd);
+	closeSocket(sockfd);
 
     return 0;
+}
+
+void closeSocket (int sock) {
+
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
+
+}
+
+char* readMessage (int sock, int newsock) {
+
+	char* buffer = (char*)calloc(256, sizeof(char));
+	char* bufForLen = (char*)calloc(4, sizeof(char));
+	uint32_t messlen;
+
+	/* Read length of message from the client */
+	ssize_t n = read(newsock, bufForLen, 4); 
+
+	if (n < 0) {
+		perror("ERROR lenght of message");
+		closeSocket(sock);
+		closeSocket(newsock);
+		
+		exit(1);
+	}
+	
+	messlen = atol(bufForLen);
+	free(bufForLen);
+
+	/* Read message from the client */
+	for(unsigned int i = 0; i < messlen; i += n) {
+
+		n = read(newsock, buffer + i, 255); 
+
+		if (n < 0) {
+			perror("ERROR of message");
+			closeSocket(sock);
+			closeSocket(newsock);
+			
+			exit(1);
+		}
+	}
+	
+	return buffer;
+
+}
+
+void writeMessage(int newsock, char* buffer) {
+
+    uint32_t messlen;
+    char* bufForLen = (char*)calloc(4, sizeof(char));
+
+    /* Send length of message to the client */
+    messlen = strlen(buffer);
+    sprintf(bufForLen, "%04d", messlen);
+    int n = write(newsock, bufForLen, strlen(bufForLen));
+
+    if (n < 0) {
+        perror("ERROR writing to socket length of message");
+        closeSocket(newsock);
+        
+        exit(1);
+    }
+    free(bufForLen);
+
+    /* Send message to the client */
+    n = write(newsock, buffer, messlen);
+
+    if (n < 0) {
+        perror("ERROR writing to socket message");
+        closeSocket(newsock);
+        
+        exit(1);
+    }
 }

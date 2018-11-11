@@ -7,15 +7,18 @@
 
 #include <string.h>
 
+void closeSocket (int socket);
+void writeMessage (int sock, char* buffer);
+char* readMessage(int sock);
+
 int main(int argc, char *argv[]) {
-    int sockfd, n;
-    long messlen;
+    int sockfd;
     uint16_t portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[256];
-    char bufforlen[sizeof(long)*8+1];
+    char* buffer = (char*)calloc(256, sizeof(char));
+
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -35,10 +38,9 @@ int main(int argc, char *argv[]) {
     server = gethostbyname(argv[1]);
 
     if (server == NULL) {
-        fprintf(stderr, "ERROR, no such host\n");
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
-
+        fprintf(stderr, "ERROR no such host\n");
+        closeSocket(sockfd);
+        
         exit(0);
     }
 
@@ -50,61 +52,96 @@ int main(int argc, char *argv[]) {
     /* Now connect to the server */
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("ERROR connecting");
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
-
+        closeSocket(sockfd);
+        
         exit(1);
     }
 
     /* Now ask for a message from the user, this message
-       * will be read by server
-    */
-
+       * will be read by server*/
     printf("Please enter the message: ");
-    bzero(buffer, 256);
     fgets(buffer, 255, stdin);
+    writeMessage(sockfd, buffer);
+    free(buffer);
 
-    /* Send message to the server */
+    /* Now read server response */
+    buffer = readMessage(sockfd);
+    free(buffer);
+
+    closeSocket(sockfd);
+
+    return 0;
+}
+
+void closeSocket (int sock) {
+
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
+
+}
+
+void writeMessage (int sock, char* buffer) {
+
+    uint32_t messlen;
+    char* bufForLen = (char*)calloc(4, sizeof(char));
+
+    /* Send length of message to the server */
     messlen = strlen(buffer);
-
-    sprintf(bufforlen, "%d", messlen);
-
-    n = write(sockfd, bufforlen, strlen(bufforlen));
+    sprintf(bufForLen, "%04d", messlen);
+    int n = write(sock, bufForLen, strlen(bufForLen));
 
     if (n < 0) {
         perror("ERROR writing to socket length of message");
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-
+        closeSocket(sock);
+        
         exit(1);
     }
+    free(bufForLen);
 
-    n = write(sockfd, buffer, messlen);
+    /* Send message to the server */
+    n = write(sock, buffer, messlen);
 
     if (n < 0) {
         perror("ERROR writing to socket message");
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
-
+        closeSocket(sock);
+        
         exit(1);
     }
+}
 
-    /* Now read server response */
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
+char* readMessage(int sock) {
+
+    char* buffer = (char*)calloc(256, sizeof(char));
+    char* bufForLen = (char*)calloc(4, sizeof(char));
+    uint32_t messlen;
+
+    /*Read lenght of message from the server*/
+    ssize_t n = read(sock, bufForLen, 4); 
 
     if (n < 0) {
-        perror("ERROR reading from socket");
-		shutdown(sockfd, SHUT_RDWR);
-		close(sockfd);
-
+        perror("ERROR lenght of message");
+        closeSocket(sock);
+        
         exit(1);
+    }
+    
+    messlen = atol(bufForLen);
+    free(bufForLen);
+
+    /*Read message from the server*/
+    for(unsigned int i = 0; i < messlen; i += n) {
+
+        n = read(sock, buffer + i, 255); 
+
+        if (n < 0) {
+            perror("ERROR of message");
+            closeSocket(sock);
+            
+            exit(1);
+        }
     }
 
     printf("%s\n", buffer);
 
-	shutdown(sockfd, SHUT_RDWR);
-	close(sockfd);
-
-    return 0;
+    return buffer;
 }
