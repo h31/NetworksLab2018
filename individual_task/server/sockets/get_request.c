@@ -21,6 +21,9 @@ int get_request(int sockfd, struct request *req) {
 		return REQUEST_LENGTH_ERROR;
 	}
 	
+	// Clear memory
+	free(buf);
+	
 	// Read byte array of request
 	buf = malloc(message_length * sizeof(char));
 	res = read_from(sockfd, buf, message_length);
@@ -56,6 +59,9 @@ int get_request(int sockfd, struct request *req) {
 	arg_length = message_length - buf_pointer;
 	req->token = (char*)malloc(arg_length * sizeof(char));
 	bcopy(&buf[buf_pointer], (req->token), arg_length * sizeof(char));
+	
+	// Clear memory
+	free(buf);
 
 	return OK;
 }
