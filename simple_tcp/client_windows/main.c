@@ -125,7 +125,7 @@ char* readMessage(SOCKET sock) {
     char* buffer = (char*)calloc(256, sizeof(char));
     char* bufForLen = (char*)calloc(4, sizeof(char));
     uint32_t messlen;
-	ssize_t n;
+	int n;
 
     /*Read lenght of message from the server*/
     n = recv(sock, bufForLen, 4, 0); 
