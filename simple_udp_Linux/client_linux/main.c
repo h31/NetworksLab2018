@@ -6,7 +6,7 @@
  
 #define SERVER "127.0.0.1"
 #define BUFLEN 256
-#define PORT 8000
+#define PORT 8080
  
 void die(char *s, int socket)
 {
