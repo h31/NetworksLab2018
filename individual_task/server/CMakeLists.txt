@@ -9,6 +9,7 @@ file(GLOB SOURCE
 	"*.c" 
 	"sockets/*.c"
 	"logging/*.c"
+	"files/*.c"
 )
 
 add_executable(server_linux ${SOURCE})

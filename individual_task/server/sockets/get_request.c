@@ -12,14 +12,16 @@ int get_request(int sockfd, struct request *req) {
 	buf = malloc(sizeof(int));
 	res = read_from(sockfd, buf, sizeof(int));
 	// Throw errors
-	if (res != OK) {
+	if (res != SOCKETS_OK) {
 		return res;
 	}
 	
 	message_length = *(int *)buf;
 	if (message_length <= 0 || message_length > 256) {
+		mlogf("Illegal length of request: %d", message_length);
 		return REQUEST_LENGTH_ERROR;
 	}
+	mlogf("Request length = %d", message_length);
 	
 	// Clear memory
 	free(buf);
@@ -28,42 +30,58 @@ int get_request(int sockfd, struct request *req) {
 	buf = malloc(message_length * sizeof(char));
 	res = read_from(sockfd, buf, message_length);
 	// Throw errors
-	if (res != OK) {
+	if (res != SOCKETS_OK) {
 		return res;
 	}
+	mlog("Request was read");
 	
 	// Now convert byte array to request struct
-	// Get type of request
-	bcopy(&buf[buf_pointer], &(req->comm.type), sizeof(int));
+	// Get length of type
+	bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
 	buf_pointer += sizeof(int);
+	
+	mlogf("type length = %d", arg_length);
+	
+	// Get type of request
+	req->comm.type = (char*)malloc(arg_length * sizeof(char));
+	bcopy(&buf[buf_pointer], req->comm.type, arg_length * sizeof(char));
+	buf_pointer +=  arg_length * sizeof(char);
+	
+	mlogf("type = %s", req->comm.type);
 	
 	// Get length of arg1
 	bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
 	buf_pointer += sizeof(int);
 	
 	// Get arg1
-	req->comm.arg1 = (char*)malloc(arg_length * sizeof(char));
-	bcopy(&buf[buf_pointer], (req->comm.arg1), arg_length * sizeof(char));
-	buf_pointer += arg_length;
+	if(arg_length > 0) {
+		req->comm.arg1 = (char*)malloc(arg_length * sizeof(char));
+		bcopy(&buf[buf_pointer], req->comm.arg1, arg_length * sizeof(char));
+		buf_pointer += arg_length;
+	}
 	
 	// Get length of arg2
 	bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
 	buf_pointer += sizeof(int);
 	
 	// Get arg2
-	req->comm.arg2 = (char*)malloc(arg_length * sizeof(char));
-	bcopy(&buf[buf_pointer], (req->comm.arg2), arg_length * sizeof(char));
-	buf_pointer += arg_length;
+	if(arg_length > 0) {
+		req->comm.arg2 = (char*)malloc(arg_length * sizeof(char));
+		bcopy(&buf[buf_pointer], req->comm.arg2, arg_length * sizeof(char));
+		buf_pointer += arg_length;
+	}
 	
 	// Get token
 	arg_length = message_length - buf_pointer;
 	req->token = (char*)malloc(arg_length * sizeof(char));
-	bcopy(&buf[buf_pointer], (req->token), arg_length * sizeof(char));
+	bcopy(&buf[buf_pointer], req->token, arg_length * sizeof(char));
+	
+	mlog("Request is parsed");
 	
 	// Clear memory
 	free(buf);
 
-	return OK;
+	return SOCKETS_OK;
 }
 
 
