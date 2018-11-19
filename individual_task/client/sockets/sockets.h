@@ -8,19 +8,29 @@
 #include <string.h>
 
 #define OK 0
-#define INVALID_TYPE 1
+#define INVALID_TYPE 100
+#define ERROR_READING_FROM_SOCKET 101
+#define READING_IS_NOT_FINISHED 102
+#define REQUEST_LENGTH_ERROR 103
+#define ERROR_WRITING_TO_SOCKET 104
 
-// Command from client
+// Command 
 struct command {
 	char* type;
 	char* arg1;
 	char* arg2;
 };
 
-// Request from client
+// Request to server
 struct request {
 	struct command comm;
 	char* token;
+};
+
+// Response from server
+struct response {
+	char* type;
+	char* payload;
 };
 
 // Function for connecting to server
@@ -34,3 +44,7 @@ int send_request(int sockfd, struct request *req);
 
 // Create request from string str
 int parse_request(char* str, struct request *req);
+
+int get_response(int sockfd, struct response *resp);
+
+int read_from(int sockfd, char* buffer, int length);

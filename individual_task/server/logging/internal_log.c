@@ -14,7 +14,8 @@ void internal_log(char const * caller_func, char* msg) {
     gettimeofday(&tval, NULL);
 
 	// Allocate memory for new string
-	output = (char*) malloc((strlen(msg) + strlen(caller_func) + 31)*sizeof(char)); //31 = date(26) + 2 spaces + \n symbol + 2 brackets
+	//32 = date(26) + 2 spaces + \n symbol + 2 brackets + null terminated symbol
+	output = (char*) malloc((strlen(msg) + strlen(caller_func) + 32)*sizeof(char)); 
 	strftime(output, 20, "%Y-%m-%d %H:%M:%S", tm_info);
 	sprintf(buffer, ".%06ld", (long int)tval.tv_usec);
 	strcat(output, buffer);

@@ -13,12 +13,11 @@ int read_from(int sockfd, char* buffer, int length) {
     	}
     	if(n == 0) {
 			if(read_length > 0) {
-				mlogf("Reading is not finisher. %d/%d bytes was read", length - read_length, length);
+				printf("Reading is not finisher. %d/%d bytes was read", length - read_length, length);
 				return READING_IS_NOT_FINISHED;
 			}
 		}
 	}
 	
-	return SOCKETS_OK;
+	return OK;
 }
-

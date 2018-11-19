@@ -9,7 +9,7 @@ int get_request(int sockfd, struct request *req) {
 	int buf_pointer = 0;
 
 	// Get length of request
-	buf = malloc(sizeof(int));
+	buf = (char*)malloc(sizeof(int));
 	res = read_from(sockfd, buf, sizeof(int));
 	// Throw errors
 	if (res != SOCKETS_OK) {
@@ -27,8 +27,10 @@ int get_request(int sockfd, struct request *req) {
 	free(buf);
 	
 	// Read byte array of request
-	buf = malloc(message_length * sizeof(char));
+	buf = (char*)malloc(message_length * sizeof(char));
+	
 	res = read_from(sockfd, buf, message_length);
+	
 	// Throw errors
 	if (res != SOCKETS_OK) {
 		return res;
@@ -43,7 +45,8 @@ int get_request(int sockfd, struct request *req) {
 	mlogf("type length = %d", arg_length);
 	
 	// Get type of request
-	req->comm.type = (char*)malloc(arg_length * sizeof(char));
+	req->comm.type = (char*)malloc(arg_length * sizeof(char)+1);
+	bzero(req->comm.type, arg_length * sizeof(char)+1);
 	bcopy(&buf[buf_pointer], req->comm.type, arg_length * sizeof(char));
 	buf_pointer +=  arg_length * sizeof(char);
 	
@@ -55,9 +58,12 @@ int get_request(int sockfd, struct request *req) {
 	
 	// Get arg1
 	if(arg_length > 0) {
-		req->comm.arg1 = (char*)malloc(arg_length * sizeof(char));
+		req->comm.arg1 = (char*)malloc(arg_length * sizeof(char)+1);
+		bzero(req->comm.arg1, arg_length * sizeof(char)+1);
 		bcopy(&buf[buf_pointer], req->comm.arg1, arg_length * sizeof(char));
 		buf_pointer += arg_length;
+	} else {
+		req->comm.arg1 = 0;
 	}
 	
 	// Get length of arg2
@@ -66,15 +72,23 @@ int get_request(int sockfd, struct request *req) {
 	
 	// Get arg2
 	if(arg_length > 0) {
-		req->comm.arg2 = (char*)malloc(arg_length * sizeof(char));
+		req->comm.arg2 = (char*)malloc(arg_length * sizeof(char)+1);
+		bzero(req->comm.arg2, arg_length * sizeof(char)+1);
 		bcopy(&buf[buf_pointer], req->comm.arg2, arg_length * sizeof(char));
 		buf_pointer += arg_length;
+	} else {
+		req->comm.arg2 = 0;
 	}
 	
 	// Get token
-	arg_length = message_length - buf_pointer;
-	req->token = (char*)malloc(arg_length * sizeof(char));
-	bcopy(&buf[buf_pointer], req->token, arg_length * sizeof(char));
+	if (message_length - buf_pointer == 0) {
+		req->token = 0;
+	} else {
+		arg_length = message_length - buf_pointer;
+		req->token = (char*)malloc(arg_length * sizeof(char)+1);
+		bzero(req->token, arg_length * sizeof(char)+1);
+		bcopy(&buf[buf_pointer], req->token, arg_length * sizeof(char));
+	}
 	
 	mlog("Request is parsed");
 	

@@ -13,14 +13,10 @@
 #define ERROR_READING_FROM_SOCKET 101
 #define READING_IS_NOT_FINISHED 102
 #define REQUEST_LENGTH_ERROR 103
+#define ERROR_WRITING_TO_SOCKET 104
 
-#define GET 1
-#define REG 2
-#define LOGIN 3
-#define LIST 4
-#define SEND 5
-#define QUIT 6
-#define DEL 7
+#define RESP_ERROR "ERR"
+#define RESP_OK "OK"
 
 // Command from client
 struct command {

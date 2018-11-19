@@ -50,7 +50,7 @@ int send_request(int sockfd, struct request *req) {
 	buf = (char*)malloc(length);
 	bzero(buf, length);
 	
-	// Set request length
+	// Set request type length
 	bcopy(&type_length, &buf[buf_pointer], sizeof(int));
 	buf_pointer += sizeof(int);
 	
@@ -97,7 +97,7 @@ int send_request(int sockfd, struct request *req) {
 		return -1;
 	}
 	
-	return 0;
+	return OK;
 }
 
 
