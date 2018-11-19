@@ -65,12 +65,12 @@ int main(int argc, char *argv[]) {
 		printf("Payload: %s\n", resp.payload);
 		
 		// Hadnle response
-		if(strcmp(resp.type, "TOKEN") == 0) {
+		if(strcmp(resp.type, RESPONSE_TOKEN) == 0) {
 			strcpy(token, resp.payload);
 			printf("I got token: %s\n", token);
 		}
 		
-		if(strcmp(resp.type, "DELETED") == 0) {
+		if(strcmp(resp.type, RESPONSE_DELETED) == 0) {
 			bzero(token, 50);
 			printf("Token is set to zero\n");
 		}

@@ -1,6 +1,6 @@
 #include "sockets.h"
 
-int send_response(int sockfd, struct response* resp) {
+int internal_send_response(int sockfd, char* type, char* payload) {
 	int type_length; // Length of response type
 	int payload_length; // Length of payload type
 	int length; // Total length of response
@@ -10,10 +10,10 @@ int send_response(int sockfd, struct response* resp) {
 	int buf_pointer = 0;
 	
 	// Set type length
-	type_length = strlen(resp->type);
+	type_length = strlen(type);
 	
 	// Set payload length
-	payload_length = strlen(resp->payload);
+	payload_length = strlen(payload);
 	
 	// Count total length of response
 	length = sizeof(int)*2 + (type_length + payload_length)*sizeof(char);
@@ -36,7 +36,7 @@ int send_response(int sockfd, struct response* resp) {
 	buf_pointer += sizeof(int);
 	
 	// Set response type
-	bcopy(resp->type, &buf[buf_pointer], type_length * sizeof(char));
+	bcopy(type, &buf[buf_pointer], type_length * sizeof(char));
 	buf_pointer += type_length * sizeof(char);
 	
 	// Set response payload length
@@ -44,7 +44,7 @@ int send_response(int sockfd, struct response* resp) {
 	buf_pointer += sizeof(int);
 	
 	// Set response payload
-	bcopy(resp->payload, &buf[buf_pointer], payload_length * sizeof(char));
+	bcopy(payload, &buf[buf_pointer], payload_length * sizeof(char));
 	buf_pointer += payload_length * sizeof(char);
 	
 	mlogf("buf_pointer = %d, length = %d", buf_pointer, length);

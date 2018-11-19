@@ -14,6 +14,12 @@
 #define REQUEST_LENGTH_ERROR 103
 #define ERROR_WRITING_TO_SOCKET 104
 
+// Define response types
+#define RESPONSE_ERROR "ERR" // When server got error on handle request
+#define RESPONSE_OK "OK" // When all is ok and response contains information about bank account
+#define RESPONSE_TOKEN "TOKEN" // When response contains session token
+#define RESPONSE_DELETED "DELETED" // When server deleted our data
+
 // Command 
 struct command {
 	char* type;

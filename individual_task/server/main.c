@@ -21,9 +21,11 @@ int main() {
 	log_init("server.log");
 	mlog("Staring server");
 	
+	// Create listen socket
 	listen_socket = create_listen_socket();
 	mlogf("listen socket fd = %d", listen_socket);
-	res = pthread_create(&listen_thread, NULL, listen_func, &listen_socket); // Create thread for listening
+	// Create thread for listening
+	res = pthread_create(&listen_thread, NULL, listen_func, &listen_socket); 
 	if (res != 0) {
 		close_socket(listen_socket, "ERROR while creating listen thread");
 	}
@@ -79,7 +81,6 @@ void *listen_func (void *arg) {
 void *client_func (void *arg) {
 	int sockfd = * (int *) arg; // Client socket
 	struct request req; // Request from client
-	struct response resp; // Response to client
 	int res = 0;
 	
 	while(1) {
@@ -102,6 +103,7 @@ void *client_func (void *arg) {
 				break;
 		}
 		
+		// Log request
 		mlogf("Type: %s", req.comm.type);
 		mlogf("Arg1: %s", req.comm.arg1);
 		mlogf("Arg2: %s", req.comm.arg2);
@@ -112,13 +114,7 @@ void *client_func (void *arg) {
 			// GET REQUEST
 			if(req.token == NULL) {
 				// Client is not logged
-				resp.type = "ERR";
-				resp.payload = "You are not logged";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "You are not logged");
 				continue;
 			}
 			// Get client money
@@ -129,231 +125,137 @@ void *client_func (void *arg) {
 			mlogf("Login = %s", login);
 			res = get_money(login);
 			mlogf("Money = %d", res);
-			if(res >= 0) {
-				resp.type = "OK";
-				char s[12];
-				sprintf(s, "%d", res);
-				resp.payload = s;
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+			if(res < 0) {
+				send_response(sockfd, RESPONSE_ERROR, "Error on reading data");
 				continue;
 			}
-			resp.type = "ERR";
-			resp.payload = "Error on reading data";
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			char s[12];
+			sprintf(s, "%d", res);
+			send_response(sockfd, RESPONSE_OK, s);			
 		} else if (strcmp(req.comm.type, "REG") == 0) {
 			// REG REQUEST
+			// Check if arguments are NULL
 			if(req.comm.arg1 == NULL || req.comm.arg2 == NULL) {
 				// Illegal arguments
 				mlog("ERROR. Illegal arguments");
-				resp.type = "ERR";
-				resp.payload = "Illegal arguments";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Illegal arguments");
 				continue;
 			}
+			// Check if user already exists
 			res = authentication(req.comm.arg1, req.comm.arg2);
 			if(res == 0 || res == WRONG_PASSWORD) {
 				// User exists
 				mlog("ERROR. User already exists");
-				resp.type = "ERR";
-				resp.payload = "User already exists";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "User already exists");
 				continue;
 			}
+			// Register new client (create file in CLIENTS_FOLDER)
 			res = register_client(req.comm.arg1, req.comm.arg2);
 			if (res != 0) {
 				mlogf("ERROR. Code = %d", res);
-				resp.type = "ERR";
-				resp.payload = "Error on registration";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on registration");
 				continue;
 			}
+			// Login client and return session token
 			char token[50];
 			res = login_client(req.comm.arg1, token, 50);
 			if (res != 0) {
 				mlogf("ERROR. Code = %d", res);
-				resp.type = "ERR";
-				resp.payload = "Error on login";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on login");
 				continue;
 			}
-			resp.type = "TOKEN";
-			resp.payload = token;
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			send_response(sockfd, RESPONSE_TOKEN, token);
 		} else if (strcmp(req.comm.type, "LOGIN") == 0) {
 			// LOGIN REQUEST
+			// Check if user exists
 			res = authentication(req.comm.arg1, req.comm.arg2);
 			if(res == USER_NOT_FOUND) {
 				// User not exists
 				mlog("ERROR. User not found");
-				resp.type = "ERR";
-				resp.payload = "User not found";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "User not found");
 				continue;
 			} else if (res == WRONG_PASSWORD) {
 				// Password is wrong
 				mlog("ERROR. Wrong password");
-				resp.type = "ERR";
-				resp.payload = "Wrong password";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Wrong password");
 				continue;
 			}
+			// Login client and return session token
 			char token[50];
 			res = login_client(req.comm.arg1, token, 50);
 			if (res != 0) {
 				mlogf("ERROR. Code = %d", res);
-				resp.type = "ERR";
-				resp.payload = "Error on login";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on login");
 				continue;
 			}
-			resp.type = "TOKEN";
-			resp.payload = token;
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			send_response(sockfd, RESPONSE_TOKEN, token);
 		} else if (strcmp(req.comm.type, "LIST") == 0) {
 			// LIST REQUEST
 			char list[1024];
 			list_all(list);
-			resp.type = "OK";
-			resp.payload = list;
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			send_response(sockfd, RESPONSE_OK, list);
 		} else if (strcmp(req.comm.type, "SEND") == 0) {
 			mlog("SEND request");
+			send_response(sockfd, RESPONSE_ERROR, "Not implemented yet");
 		} else if (strcmp(req.comm.type, "QUIT") == 0) {
 			// QUIT REQUEST
+			// Check if token is NULL
 			if(req.token == NULL) {
 				// Client is not logged
-				resp.type = "ERR";
-				resp.payload = "You are not logged";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "You are not logged");
 				continue;
 			}
+			// Delete client token drom "database"
 			res = delete_client_token(req.token);
 			if(res != 0) {
 				mlogf("ERROR. Delete_token code = %d", res);
-				resp.type = "ERR";
-				resp.payload = "Error on deleting data";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on deleting data");
 				continue;
 			}
-			resp.type = "OK";
-			resp.payload = "Token deleted";
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			// Send responce that we have deleted token. Now user must delete his token, too
+			send_response(sockfd, RESPONSE_OK, "Token deleted");
 		} else if (strcmp(req.comm.type, "DEL") == 0) {
 			// DEL REQUEST
+			// Check if token is NULL
 			if(req.token == NULL) {
 				// Client is not logged
-				resp.type = "ERR";
-				resp.payload = "You are not logged";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "You are not logged");
 				continue;
 			}
+			// Get login of client by token
 			char login[50];
 			res = get_login(req.token, login);
 			if (res != 0) {
 				mlogf("ERROR. Code = %d", res);
-				resp.type = "ERR";
-				resp.payload = "Error on get login";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on get login");
 				continue;
 			}
 			int res2;
+			// Delete client token and login
 			res = delete_client_token(req.token);
 			res2 = delete_client_data(login);
 			if(res != 0 || res2 != 0) {
 				mlogf("ERROR. Delete_token code = %d; Delete_login code = %d", res, res2);
-				resp.type = "ERR";
-				resp.payload = "Error on deleting data";
-				res = send_response(sockfd, &resp);
-				if(res == ERROR_WRITING_TO_SOCKET) {
-					close_socket(sockfd, "ERROR writing to socket");
-					pthread_exit(1);
-				}
+				send_response(sockfd, RESPONSE_ERROR, "Error on deleting data");
 				continue;
 			}
-			resp.type = "DELETED";
-			resp.payload = "Data deleted";
-			res = send_response(sockfd, &resp);
-			if(res == ERROR_WRITING_TO_SOCKET) {
-				close_socket(sockfd, "ERROR writing to socket");
-				pthread_exit(1);
-			}
+			send_response(sockfd, RESPONSE_DELETED, "Data deleted");
 		} else {
 			mlogf("Unknow type of request: %s", req.comm.type);
-			resp.type = strdup("ERR");
-			resp.payload = strdup("Unknown type of request");
-			res = send_response(sockfd, &resp);
+			send_response(sockfd, RESPONSE_ERROR, "Unknown type of request");
 		}
 	}
-	if(res != 0) mlog("ERROR WAS!");
 	close_socket(sockfd, "no errors");
 	pthread_exit(0);
+}
+
+// Function for sending response to client
+void send_response(int sockfd, char* type, char* payload) {
+	int res;
+	res = internal_send_response(sockfd, type, payload);
+	if(res == ERROR_WRITING_TO_SOCKET) {
+		close_socket(sockfd, "ERROR writing to socket");
+		pthread_exit(1);
+	}
 }
 
