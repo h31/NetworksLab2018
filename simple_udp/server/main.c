@@ -14,7 +14,9 @@ int main(int argc, char *argv[]) {
     uint16_t portno;
     unsigned int clilen;
     struct sockaddr_in serv_addr, cli_addr;
-    char* buffer;
+    char* servResp = "I GOT YOUR MESSAGE";
+
+    char* buffer = (char*)calloc(256, sizeof(char));
     
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -27,7 +29,6 @@ int main(int argc, char *argv[]) {
     /* Initialize socket structure */
     bzero((char *) &serv_addr, sizeof(serv_addr));
     portno = 5001;
-
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
@@ -48,8 +49,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Now start listening for the clients, here process will
-       * go in sleep mode and will wait for the incoming connection
-    */
+       * go in sleep mode and will wait for the incoming connection*/
     clilen = sizeof(cli_addr);
 
     if(fork() > 0){
@@ -60,7 +60,8 @@ int main(int argc, char *argv[]) {
 
     while(1) {
 
-        n = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &cli_addr, &clilen);
+        bzero(buffer, 256);
+        n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &cli_addr, &clilen);
 
         if (n < 0) {
             perror("ERROR reading from socket");
@@ -70,8 +71,9 @@ int main(int argc, char *argv[]) {
         }
 
         printf("Here the message: %s\n", buffer);
+        bzero(buffer, 256);
 
-        n = sendto(sockfd, "I GOT YOUR MESSAGE", 18, 0, (struct sockaddr *) &cli_addr, &clilen);
+        n = sendto(sockfd, servResp, strlen(servResp), 0, (struct sockaddr *) &cli_addr, clilen);
 
         if (n < 0) {
             perror("ERROR sending to socket");
@@ -79,8 +81,6 @@ int main(int argc, char *argv[]) {
             
             exit(1);
         }
-
-        
     }
     
     closeSocket(sockfd);

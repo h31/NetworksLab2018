@@ -11,11 +11,14 @@
 void closeSocket (int sock);
 
 int main(int argc, char *argv[]) {
-    int sockfd, n;
+    int sockfd;
+    ssize_t n;
     uint16_t portno;
+    unsigned int servlen;
     struct sockaddr_in serv_addr;
 
     char* buffer = (char*)calloc(256, sizeof(char));
+    bzero(buffer, 256);
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -41,7 +44,9 @@ int main(int argc, char *argv[]) {
     printf("Please enter the message: ");
     fgets(buffer, 255, stdin);
 
-    n = sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    servlen = sizeof(serv_addr);
+
+    n = sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, servlen);
 
     if (n < 0) {
         perror("ERROR writing to socket message");
@@ -49,10 +54,11 @@ int main(int argc, char *argv[]) {
         
         exit(1);
     }
-    free(buffer);
 
+    bzero(buffer, 256);
+ 
     /* Now read server response */
-    n = recvfrom(sockfd, buffer, 255, 0, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &serv_addr, &servlen);
 
         if (n < 0) {
         perror("ERROR reading from socket");
@@ -60,6 +66,8 @@ int main(int argc, char *argv[]) {
         
         exit(1);
     }
+
+    printf("%s\n", buffer);
 
     closeSocket(sockfd);
     free(buffer);
