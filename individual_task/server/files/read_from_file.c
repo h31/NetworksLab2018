@@ -7,7 +7,7 @@ int read_from_file(char* filename, char* buf, int length) {
 	// Open file for reading
 	file = fopen(filename, "r");
 	if(file == NULL) {
-		printf("ERROR on opening file with name=%s", filename);
+		mlogf("ERROR on opening file with name=%s", filename);
 		return ERROR;
 	}
 	
@@ -17,7 +17,7 @@ int read_from_file(char* filename, char* buf, int length) {
 	// Check for errors
 	if(res < length) {
 		if(feof(file) == 0) {
-			printf("ERROR on reading from file with name=%s", filename);
+			mlogf("ERROR on reading from file with name=%s", filename);
 			return ERROR;
 		}
 	}
@@ -25,7 +25,7 @@ int read_from_file(char* filename, char* buf, int length) {
 	// Close file
 	res = fclose(file);
 	if(res != 0) {
-		printf("ERROR on closing file with name=%s", filename);
+		mlogf("ERROR on closing file with name=%s", filename);
 		return ERROR;
 	}
 	return OK;
