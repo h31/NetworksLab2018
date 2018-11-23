@@ -39,8 +39,8 @@ int check_account(char* login, char* password);
 // Delete account by login
 int delete_account(char* login);
 
-// Get client cash. Function fills cash variable
-int get_account_cash(char* login, int *cash);
+// Get client cash. Function fills cash and password variables
+int get_account_data(char* login, int *cash, char* password);
 
 // Add money to client account
 int put_account_cash(char* login, int put);

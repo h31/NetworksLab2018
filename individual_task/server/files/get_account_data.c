@@ -1,6 +1,6 @@
 #include "files.h"
 
-int get_account_cash(char* login, int *cash) {
+int get_account_data(char* login, int *cash, char* password) {
 	char* filename;
 	char* buf[256];
 	char* str_token;
@@ -24,10 +24,15 @@ int get_account_cash(char* login, int *cash) {
 	}
 	
 	// Read money
-	str_token = strtok(buf, "\n"); // Read money
+	str_token = strtok(buf, "\n");
 	
 	// Convert char array to int
 	sscanf(str_token, "%d", &*cash);
+	
+    // Read password
+    str_token = strtok(NULL, "\n");
+    sscanf(str_token, "%s", password);
+    mlogf("cash = %d, pass = %s", cash, password);
 	
 	return OK;
 }

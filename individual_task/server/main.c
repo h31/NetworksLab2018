@@ -155,16 +155,20 @@ void get_request_handler(int sockfd, struct request req)
     int res;
     char login[1];
     int cash;
+    char cash_string[20];
+    char password[128];
 
     res = get_session_client(req.token, login);
     if (handle_errors(sockfd, res))
         return;
 
-    res = get_account_cash(login, &cash);
+    res = get_account_data(login, &cash, password);
     if (handle_errors(sockfd, res))
         return;
+        
+    sprintf(cash_string, "%d", cash);
 
-    send_response(sockfd, RESPONSE_OK, "MONEY");
+    send_response(sockfd, RESPONSE_OK, cash_string);
 }
 
 // Function for handling reg request
@@ -246,13 +250,14 @@ void send_request_handler(int sockfd, struct request req)
         return;
 
     int res;
-    char login[1];
+    char login[128];
+    char password[128];
     int sender_cash;
     int receiver_cash;
     int send_cash;
 
     // Get receiver cash
-    res = get_account_cash(req.comm.arg2, &receiver_cash);
+    res = get_account_data(req.comm.arg2, &receiver_cash, password);
     if (handle_errors(sockfd, res))
         return;
 
@@ -261,7 +266,7 @@ void send_request_handler(int sockfd, struct request req)
     if (handle_errors(sockfd, res))
         return;
 
-    res = get_account_cash(login, &sender_cash);
+    res = get_account_data(login, &sender_cash, password);
     if (handle_errors(sockfd, res))
         return;
 
@@ -278,6 +283,11 @@ void send_request_handler(int sockfd, struct request req)
         return;
 
     // Send money to other client
+    res = put_account_cash(req.comm.arg2, send_cash);
+    if (handle_errors(sockfd, res))
+    	return;
+    	
+    send_response(sockfd, RESPONSE_OK, "Success");
 }
 
 // Function for handling del request
@@ -286,6 +296,22 @@ void del_request_handler(int sockfd, struct request req)
     // Check if token is NULL
     if (check_token(sockfd, req))
         return;
+    // Delete data
+    int res;
+    char login[1];
+    res = get_session_client(req.token, login);
+    if (handle_errors(sockfd, res))
+        return;
+    res = delete_account(login);
+    if (handle_errors(sockfd, res))
+        return;
+    
+    // End session
+    res = delete_session(req.token);
+    if (handle_errors(sockfd, res))
+        return;
+        
+    send_response(sokfd, RESPONSE_DELETED, "User data deleted");
 }
 
 // Function for handling quit request
@@ -302,7 +328,7 @@ void quit_request_handler(int sockfd, struct request req)
         return;
 
     // Send responce that we have deleted token. Now user must delete his token
-    send_response(sockfd, RESPONSE_OK, "Token deleted");
+    send_response(sockfd, RESPONSE_DELETED, "Token deleted");
 }
 
 // Function for handling errors

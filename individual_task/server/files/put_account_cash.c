@@ -3,13 +3,14 @@
 int put_account_cash(char* login, int put) {
 	char* filename;
 	char* buf[256];
-	char* str_token;
+	char* password[128];
 	int length;
 	int res;
 	int cash;
 	
 	// Get cash
-	res = get_account_cash(login, &cash);
+	bzero(password, 128);
+	res = get_account_data(login, &cash, password);
 	if (res != OK) {
 		return res;
 	}
@@ -25,7 +26,8 @@ int put_account_cash(char* login, int put) {
 	
 	// Put cash back to file
 	bzero(buf, 256);
-	sprintf(buf, "%d", cash);
+	sprintf(buf, "%d\n", cash);
+	strcat(buf, password);
 	res = write_to_file(filename, buf, strlen(buf));
 	return res;
 }

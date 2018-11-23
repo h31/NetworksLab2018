@@ -3,13 +3,14 @@
 int withdraw_account_cash(char* login, int withdraw) {
 	char* filename;
 	char* buf[256];
-	char* str_token;
+	char* password[128];
 	int length;
 	int res;
 	int cash;
 	
 	// Get cash
-	res = get_account_cash(login, &cash);
+	bzero(password, 128);
+	res = get_account_data(login, &cash, password);
 	if (res != OK) {
 		return res;
 	}
@@ -25,7 +26,9 @@ int withdraw_account_cash(char* login, int withdraw) {
 	
 	// Put cash back to file
 	bzero(buf, 256);
-	sprintf(buf, "%d", cash);
+	sprintf(buf, "%d\n", cash);
+	strcat(buf, password);
+	mlogf("buf = %s", buf);
 	res = write_to_file(filename, buf, strlen(buf));
 	return res;
 }
