@@ -1,57 +1,62 @@
-/**
- * Client data is stored in folder "data/clients"
- * Tokens of logged clients are stored in folder "data/tokens"
- */
 #include "../logging/logging.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
-#define FILES_OK 0
+// Define error codes
+#define OK 0
 #define USER_ALREADY_EXISTS 201
 #define USER_NOT_FOUND 202
 #define WRONG_PASSWORD 203
 #define NOT_ENOUGH_CASH 204
 #define ERROR 205
-#define CAN_NOT_LOGIN 206
 
-#define CLIENTS_FOLDER_LENGTH 13
-#define TOKENS_FOLDER_LENGTH 12
-
+// Define folders for data
 #define CLIENTS_FOLDER "data/clients/"
-#define TOKENS_FOLDER "data/tokens/"
+#define SESSION_FOLDER "data/session/"
 
-// Returns 0 if token is right and client is logged
-// Fills login
-int get_login(char *token, char *login);
+// Call this function on start. Creates folders for data
+void init_data_folders();
 
-// Get cash on client account by login
-int get_money(char *login);
+// Basic functions
+// Reads from <filename> into <buf> <length> of bytes
+int read_from_file(char* filename, char* buf, int length);
 
-// Check if login and password exist
-int authentication(char *login, char *passwd);
+// Write to <filename> bytes from <buf>
+int write_to_file(char* filename, char* buf, int length);
 
-// Register new client
-// Creates new file in CLIENTS_FOLDER
-int register_client(char *login, char *passwd);
+// List all created accounts, length = max length of list_out
+void list_all_accounts(char* list_out, int length);
 
-// Creates new file in TOKENS_FOLDER
-// Function fills token
-int login_client(char *login, char *token, int length);
+// Account functions
+// Create account with login and password
+int create_account(char* login, char* password);
 
-// Send ammount of money to client with login <login> from client with token
-// <token>
-int send_to(char *token, char *login, int ammount);
+// Check if account with <login> exists and has a <password>
+int check_account(char* login, char* password);
 
-// Delete client token from TOKENS_FOLDER
-int delete_client_token(char *token);
+// Delete account by login
+int delete_account(char* login);
 
-// Delete client data from CLIENTS_FOLDER
-int delete_client_data(char *login);
+// Get client cash. Function fills cash and password variables
+int get_account_data(char* login, int* cash, char* password);
+
+// Add money to client account
+int put_account_cash(char* login, int put);
+
+// Withdraw moneys from account
+int withdraw_account_cash(char* login, int withdraw);
+
+// Session functions
+// Create new session for client with <login>. Function fills token variable
+int create_session(char* login, char* token, int token_length);
+
+// Delete session file by token
+int delete_session(char* token);
+
+// Get client login by token. Function fills login variable
+int get_session_client(char* token, char* login);
 
 // Generates random string
-void generate_token(char *token, int length);
-
-void list_all(char *list_out);
+void generate_token(char* token, int length);
