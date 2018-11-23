@@ -26,6 +26,9 @@ int read_from_file(char* filename, char* buf, int length);
 // Write to <filename> bytes from <buf>
 int write_to_file(char* filename, char* buf, int length);
 
+// List all created accounts, length = max length of list_out
+void list_all_accounts(char* list_out, int length);
+
 // Account functions
 // Create account with login and password
 int create_account(char* login, char* password);

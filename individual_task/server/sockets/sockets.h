@@ -18,8 +18,7 @@
 
 // Define response types
 #define RESPONSE_ERROR "ERR" // When we got error on handle request
-#define RESPONSE_OK                                                            \
-  "OK" // When all is ok and response contains information about bank account
+#define RESPONSE_OK "OK" // When all is ok and response contains information about bank account
 #define RESPONSE_TOKEN "TOKEN"     // When response contains session token
 #define RESPONSE_DELETED "DELETED" // When we deleted client data
 
