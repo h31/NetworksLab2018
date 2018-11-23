@@ -32,7 +32,6 @@ int get_account_data(char* login, int *cash, char* password) {
     // Read password
     str_token = strtok(NULL, "\n");
     sscanf(str_token, "%s", password);
-    mlogf("cash = %d, pass = %s", cash, password);
 	
 	return OK;
 }

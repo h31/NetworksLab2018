@@ -28,7 +28,6 @@ int withdraw_account_cash(char* login, int withdraw) {
 	bzero(buf, 256);
 	sprintf(buf, "%d\n", cash);
 	strcat(buf, password);
-	mlogf("buf = %s", buf);
 	res = write_to_file(filename, buf, strlen(buf));
 	return res;
 }

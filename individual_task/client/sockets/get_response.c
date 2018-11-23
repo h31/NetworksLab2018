@@ -21,7 +21,6 @@ int get_response(int sockfd, struct response *resp) {
     printf("Illegal length of request: %d\n", message_length);
     return REQUEST_LENGTH_ERROR;
   }
-  printf("Message length = %d\n", message_length);
 
   // Clear memory
   free(buf);

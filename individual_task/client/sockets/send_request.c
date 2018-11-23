@@ -39,8 +39,6 @@ int send_request(int sockfd, struct request *req) {
       sizeof(int) * 3 +
       (type_length + arg1_length + arg2_length + token_length) * sizeof(char);
 
-  printf("TOTAL LENGTH = %d\n", length);
-
   // Send length to server
   res = write(sockfd, &length, sizeof(int));
   if (res < 0) {

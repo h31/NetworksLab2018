@@ -117,10 +117,7 @@ void* client_func(void* arg)
             continue;
 
         // Log request
-        mlogf("Type: %s", req.comm.type);
-        mlogf("Arg1: %s", req.comm.arg1);
-        mlogf("Arg2: %s", req.comm.arg2);
-        mlogf("Token: %s", req.token);
+        mlogf("REQUEST:\nType: %s\nArg1: %s\nArg2: %s\nToken: %s", req.comm.type, req.comm.arg1, req.comm.arg2, req.token);
 
         // Handle request
         if (strcmp(req.comm.type, "GET") == 0) {
@@ -213,6 +210,11 @@ void login_request_handler(int sockfd, struct request req)
     // Check if arguments are NULL
     if (check_arguments(sockfd, req))
         return;
+    
+    // Delete prevous session   
+    if(req.token != NULL) {
+    	delete_session(req.token);
+    }
 
     // Check if user exists
     int res;
@@ -311,13 +313,12 @@ void del_request_handler(int sockfd, struct request req)
     if (handle_errors(sockfd, res))
         return;
         
-    send_response(sokfd, RESPONSE_DELETED, "User data deleted");
+    send_response(sockfd, RESPONSE_DELETED, "User data deleted");
 }
 
 // Function for handling quit request
 void quit_request_handler(int sockfd, struct request req)
 {
-    // QUIT REQUEST
     // Check if token is NULL
     if (check_token(sockfd, req))
         return;
