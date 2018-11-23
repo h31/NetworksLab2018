@@ -162,7 +162,7 @@ void get_request_handler(int sockfd, struct request req)
     res = get_account_data(login, &cash, password);
     if (handle_errors(sockfd, res))
         return;
-        
+
     sprintf(cash_string, "%d", cash);
 
     send_response(sockfd, RESPONSE_OK, cash_string);
@@ -210,10 +210,10 @@ void login_request_handler(int sockfd, struct request req)
     // Check if arguments are NULL
     if (check_arguments(sockfd, req))
         return;
-    
-    // Delete prevous session   
-    if(req.token != NULL) {
-    	delete_session(req.token);
+
+    // Delete prevous session
+    if (req.token != NULL) {
+        delete_session(req.token);
     }
 
     // Check if user exists
@@ -287,8 +287,8 @@ void send_request_handler(int sockfd, struct request req)
     // Send money to other client
     res = put_account_cash(req.comm.arg2, send_cash);
     if (handle_errors(sockfd, res))
-    	return;
-    	
+        return;
+
     send_response(sockfd, RESPONSE_OK, "Success");
 }
 
@@ -307,12 +307,12 @@ void del_request_handler(int sockfd, struct request req)
     res = delete_account(login);
     if (handle_errors(sockfd, res))
         return;
-    
+
     // End session
     res = delete_session(req.token);
     if (handle_errors(sockfd, res))
         return;
-        
+
     send_response(sockfd, RESPONSE_DELETED, "User data deleted");
 }
 
@@ -354,17 +354,17 @@ int handle_errors(int sockfd, int error)
         send_response(sockfd, RESPONSE_ERROR, "Internal error");
         return 1;
     case ERROR_READING_FROM_SOCKET:
-      	close_socket(sockfd, "ERROR while reading from socket");
-      	pthread_exit(1);
-      	break;
+        close_socket(sockfd, "ERROR while reading from socket");
+        pthread_exit(1);
+        break;
     case READING_IS_NOT_FINISHED:
-      	close_socket(sockfd, "Client closed connection");
-      	pthread_exit(1);
-     	break;
+        close_socket(sockfd, "Client closed connection");
+        pthread_exit(1);
+        break;
     case REQUEST_LENGTH_ERROR:
-      	close_socket(sockfd, "ERROR in request length");
-      	pthread_exit(1);
-      	break;
+        close_socket(sockfd, "ERROR in request length");
+        pthread_exit(1);
+        break;
     }
 }
 
@@ -394,6 +394,8 @@ int check_token(int sockfd, struct request req)
 // Function for sending response to client
 void send_response(int sockfd, char* type, char* payload)
 {
+    // Log response
+    mlogf("RESPONSE:\nType: %s\nPayload: %s", type, payload);
     int res;
     res = internal_send_response(sockfd, type, payload);
     if (res == ERROR_WRITING_TO_SOCKET) {

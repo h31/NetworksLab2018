@@ -19,20 +19,20 @@
 // Define response types
 #define RESPONSE_ERROR "ERR" // When we got error on handle request
 #define RESPONSE_OK "OK" // When all is ok and response contains information about bank account
-#define RESPONSE_TOKEN "TOKEN"     // When response contains session token
+#define RESPONSE_TOKEN "TOKEN" // When response contains session token
 #define RESPONSE_DELETED "DELETED" // When we deleted client data
 
 // Command from client
 struct command {
-  char *type;
-  char *arg1;
-  char *arg2;
+    char* type;
+    char* arg1;
+    char* arg2;
 };
 
 // Request from client
 struct request {
-  struct command comm;
-  char *token;
+    struct command comm;
+    char* token;
 };
 
 // Function for creating listen socket
@@ -40,14 +40,14 @@ struct request {
 int create_listen_socket();
 
 // Close socket for read and write and print message
-void close_socket(int sockfd, char *msg);
+void close_socket(int sockfd, char* msg);
 
 // Get request from client
-int get_request(int sockfd, struct request *req);
+int get_request(int sockfd, struct request* req);
 
 // Read data from socket
-int read_from(int sockfd, char *buffer, int length);
+int read_from(int sockfd, char* buffer, int length);
 
 // Send responce to client
 // Wrap response to byte array and write it to socket
-int internal_send_response(int sockfd, char *type, char *payload);
+int internal_send_response(int sockfd, char* type, char* payload);

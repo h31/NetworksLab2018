@@ -40,7 +40,7 @@ int check_account(char* login, char* password);
 int delete_account(char* login);
 
 // Get client cash. Function fills cash and password variables
-int get_account_data(char* login, int *cash, char* password);
+int get_account_data(char* login, int* cash, char* password);
 
 // Add money to client account
 int put_account_cash(char* login, int put);
@@ -59,4 +59,4 @@ int delete_session(char* token);
 int get_session_client(char* token, char* login);
 
 // Generates random string
-void generate_token(char *token, int length);
+void generate_token(char* token, int length);
