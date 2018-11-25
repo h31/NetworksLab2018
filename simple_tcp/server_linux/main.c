@@ -20,7 +20,7 @@ int const MAX_CLIENT_COUNT = 10;
 int totalActiveClientsCount = 0;
 int isFinishing = FALSE;
 
-pthread_mutex_t mutex;
+pthread_mutex_t mutexTotalAcitveClientsCount;
 
 void closeSocket(int socket) {
 	printf("Closing socket = %d \r\n", socket);
@@ -31,11 +31,11 @@ void closeSocket(int socket) {
 void cleanUpClientConnectionThread(int newsockfd) {
 	closeSocket(newsockfd);
 	
-	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&mutexTotalAcitveClientsCount);
 	printf("Handler starts deactivating for newsockfd = %d\r\n", newsockfd);
 	totalActiveClientsCount--;
 	printf("Total active clients = %d\r\n", totalActiveClientsCount);
-	pthread_mutex_unlock(&mutex);
+	pthread_mutex_unlock(&mutexTotalAcitveClientsCount);
 
 	pthread_exit(0);
 }
@@ -70,7 +70,7 @@ void handleClientConnection(void* arg) {
 		
 		messageBytesLength = buffer[0];
 		
-		printf("Initially read [%d] bytes of [%d] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
+		printf("Initially read [%ld] bytes of [%ld] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
 		
 		while (messageBytesLength > totalBytesCount) {
 			// Continue reading message to assemble full size message
@@ -87,15 +87,18 @@ void handleClientConnection(void* arg) {
 				cleanUpClientConnectionThread(newsockfd);
 			}
 
-			totalBytesCount = totalBytesCount + additionalBytesCount;
+			totalBytesCount += additionalBytesCount;
 			
-			printf("Read [%d] bytes of [%d] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
+			printf("Read [%ld] bytes of [%ld] messageBytesLength\r\n", totalBytesCount, messageBytesLength);
 		}
 		
 		printf("Read from = %d:\r\n%s", newsockfd, buffer + 1);
 
 		/* Write a response to the client */
-		totalBytesCount = write(newsockfd, "I got your message", 18);
+		bzero(buffer, sizeof(buffer));
+		sprintf(buffer + 1, "I got your message");
+		buffer[0] = 18;
+		totalBytesCount = write(newsockfd, buffer, buffer[0] + 1);
 
 		if (totalBytesCount < 0) {
 			printf("ERROR ON SENDING BACK, DISCONNECTING\r\n");
@@ -138,11 +141,11 @@ void acceptNewClients() {
 			printf("Error on creating client thread, error number: %d\r\n", nextClientThreadCreationResult);
 		} else {
 			pthread_detach(nextClientThread);
-			pthread_mutex_lock(&mutex);
+			pthread_mutex_lock(&mutexTotalAcitveClientsCount);
 			totalActiveClientsCount++;
 			printf("Creating handler for newsockfd = %d\r\n", newsockfd);
 			printf("Total active clients = %d\r\n", totalActiveClientsCount);
-			pthread_mutex_unlock(&mutex);
+			pthread_mutex_unlock(&mutexTotalAcitveClientsCount);
 		}
 	}
 	
@@ -171,6 +174,9 @@ void mainThreadCleanUp() {
 int main() {
 	// When CTRL+C pressed within terminal -> cleaning up
 	signal(SIGINT, mainThreadCleanUp);
+	
+	// Program is about to terminate
+	signal(SIGTERM, mainThreadCleanUp);
 	
 	struct sockaddr_in serv_addr;
 	uint16_t portno;

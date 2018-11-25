@@ -22,6 +22,7 @@ void closeApp() {
 
 int main(int argc, char *argv[]) {
 	signal(SIGINT, closeApp);
+	
 	int n;
 	uint16_t portno;
 	struct sockaddr_in serv_addr;
@@ -66,8 +67,7 @@ int main(int argc, char *argv[]) {
 	* will be read by server
 	*/
 	
-	int textInputSize;
-	textInputSize = 0;
+	int textInputSize = 0;
 	
 	while (1) {
 		printf("Please enter the message: ");
@@ -105,7 +105,20 @@ int main(int argc, char *argv[]) {
 			perror("ERROR reading from socket");
 			closeApp();
 		}
+		
+		int responseLength = buffer[0];
+		
+		while (responseLength > n) {
+			int addedBytesCount = read(sockfd, buffer + n, sizeof(buffer) - 1 - n);
+			
+			if (addedBytesCount <= 0) {
+				perror("ERROR reading from socket");
+				closeApp();
+			}
+			
+			n += addedBytesCount;
+		}
 
-		printf("%s\n", buffer);
+		printf("%s\n", buffer + 1);
 	}
 }
