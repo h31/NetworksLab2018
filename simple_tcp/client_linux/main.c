@@ -22,6 +22,7 @@ void closeApp() {
 
 int main(int argc, char *argv[]) {
 	signal(SIGINT, closeApp);
+	signal(SIGTERM, closeApp)
 	
 	int n;
 	uint16_t portno;
