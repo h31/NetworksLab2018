@@ -7,13 +7,15 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <pthread.h>
-
+int check_1 = 1;
 void *connection_handler(void *);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
     int sockfd, newsockfd;
     uint16_t portno;
     unsigned int clilen;
+    
     struct sockaddr_in serv_addr, cli_addr;
 
     /* First call to socket() function */
@@ -32,7 +34,8 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
-     if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
+     if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) 
+    {
     	perror("ERROR on setsockopt");
     	shutdown(sockfd, 2);
     	close(sockfd);
@@ -73,7 +76,7 @@ int main(int argc, char *argv[]) {
 	    return 1;
 	}
 
-	
+	pthread_detach(sn_thread);
 	puts("Handler assigned");
     }
 
@@ -92,28 +95,67 @@ void *connection_handler(void *socket_desc)
 {
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
-    char buffer[256];
-    ssize_t n;
+    char dataSize;
+    char dataBuffer[256];
+    int buffer_1_length = 0;
+    char buffer_1 [sizeof(dataBuffer)*2];
+    char* buffer = 0;
+    ssize_t n, bufferSize;
 
-    bzero(buffer, 256);
-    n = read(sock, buffer, 255);
+    for(;;)
+    {
+        n = recv(sock, buffer_1 + buffer_1_length, sizeof(dataBuffer), NULL); 
+        if (n < 0) 
+        {
+	    perror("ERROR reading from socket");
+	    close(sock);
+	    shutdown(sock, 2);
+	    pthread_exit(1);
+        }
 
-    if (n < 0) {
-	perror("ERROR reading from socket");
-	shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
-    }
-    printf("Here is the message: %s\n", buffer);
+        if (n == 0) 
+        {
+	    perror("Connection closed");
+	    fflush(stdout);
+	    close(sock);
+	    shutdown(sock, 2);
+	    pthread_exit(2);
+        }
+	
+	buffer_1_length+=n;	
 
-    /* Write a response to the client */
-    n = write(sock, "I got your message", 18); // send on Windows
+	if (dataSize == 0) 
+        {
+	    buffer = realloc(buffer, bufferSize + 1);
+            buffer[bufferSize] = 0;
+            if (check_1 ==1)
+	{
+            printf("Here is the message: %s\n", buffer_1);
+	    check_1 = -check_1;
+	   
+	}
+	else check_1 = -check_1;
+	}
+	else 
+        {
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
+	    if (buffer == 0)
+            {
+		buffer = malloc(dataSize);
+		memcpy(buffer, dataBuffer, dataSize);
+		bufferSize = dataSize;
+	    }
+
+	    else
+            {
+		buffer = realloc(buffer, bufferSize + dataSize);
+		memcpy(buffer + bufferSize, dataBuffer, dataSize);
+		bufferSize += dataSize;
+	    }
+
+	    memcpy(buffer_1, buffer_1 + dataSize + 1, dataSize + 1);
+	    buffer_1_length -= dataSize + 1;
+	}
     }
     shutdown(sock, 2);
     close(sock);
