@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	    bzero(buffer, 256);
 	    fgets(buffer, 255, stdin);
 
-    	    if(strcmp(buffer, (char *) 'quit') != 0) {
+    	    if(strstr(buffer, "quit") != 0) {
 			printf("\nThe end.");
 			shutdown(sockfd, SHUT_RDWR);
 			return 0;
@@ -87,4 +87,3 @@ int main(int argc, char *argv[]) {
     return 0;
     
 }
-
