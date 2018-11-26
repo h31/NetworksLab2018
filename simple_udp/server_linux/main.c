@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     unsigned int clilen;
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
-   
+
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -39,34 +39,34 @@ int main(int argc, char *argv[]) {
 
 
     clilen = sizeof(cli_addr);
-	
+
     while (1)
-	{
-		while((received_size = recvfrom(sockfd , buffer , 256 , 0,(struct sockaddr *) &cli_addr, &clilen)) > 0 )
-		{
-        //Send the message back to client
-        	if(sendto(sockfd , buffer , received_size,0,(struct sockaddr*) &cli_addr, clilen)<0)
-			{
-				perror("ERROR send");
-				exit(1);
-			}
-			buffer[n] = '\0';
-        	printf("Here is the message: %s\n", buffer);
-			memset(buffer ,'\0', 256);
-			buffer[received_size] = '\0';
-		}
-    	if(received_size == -1)
-    	{
-       		perror("ERROR recv");
-			exit(1);
-		}
-		free(sockfd)
-		close(sockfd);
-		return 0;
-}
+    {
+        while((received_size = recvfrom(sockfd , buffer , 256 , 0,(struct sockaddr *) &cli_addr, &clilen)) > 0 )
+        {
+            //Send the message back to client
+            if(sendto(sockfd , buffer , received_size,0,(struct sockaddr*) &cli_addr, clilen)<0)
+            {
+                perror("ERROR send");
+                exit(1);
+            }
+            buffer[n] = '\0';
+            printf("Here is the message: %s\n", buffer);
+            memset(buffer ,'\0', 256);
+            buffer[received_size] = '\0';
+        }
+        if(received_size == -1)
+        {
+            perror("ERROR recv");
+            exit(1);
+        }
+        free(sockfd)
+                close(sockfd);
+        return 0;
+    }
 }
 
-  
- 
 
-	
+
+
+
