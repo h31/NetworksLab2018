@@ -41,6 +41,9 @@ void master(Server& server)
 
 int main(int argc, char* argv[])
 {
+	// disable buffering
+	setbuf(stdout, NULL);
+
 	Server server;
 	server.start(nullptr);
 
