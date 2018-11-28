@@ -74,7 +74,7 @@ public:
 		assert(state == State::None);
 
 		bool is_server = master_address == 0;
-		address_server.hostname = "localhost";
+		address_server.hostname = "127.0.0.1";
 		address_server.port = Network_port;
 
 		socket_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -307,6 +307,8 @@ private:
 				n = -1;
 			}
 			if (n <= 0) break;
+
+			printf("Message of length %s incoming, reading\n", std::to_string(length).c_str());
 
 			Message message;
 			message.length = length;
