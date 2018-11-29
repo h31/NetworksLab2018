@@ -138,6 +138,14 @@ void* client_func(void* arg)
             mlogf("Unknow type of request: %s", req.comm.type);
             send_response(sockfd, RESPONSE_ERROR, "Unknown type of request");
         }
+        
+        // Free memory
+        mlog("Start free request memory");
+        free(req.comm.type);
+        if(req.comm.arg1 != NULL) free(req.comm.arg1);
+        if(req.comm.arg2 != NULL) free(req.comm.arg2);
+        if(req.token != NULL) free(req.token);
+        mlog("Free request memory is done");
     }
     close_socket(sockfd, "no errors");
     pthread_exit(0);
