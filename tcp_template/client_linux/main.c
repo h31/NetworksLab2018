@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     bzero(buffer, 256);
     
     while(1) {
-         n = read(sockfd, buffer, 255, 0);
+         n = recv(sockfd, buffer, 255, 0);
          printf("%s\n", buffer);
          bzero(buffer, 256);
          if (n < 255) break;
