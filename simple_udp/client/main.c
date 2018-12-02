@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     /* Now read server response */
     bzero(buffer, 256);
     
-    n = read(sockfd, buffer, 255, 0);
+    n = recv(sockfd, buffer, 255, 0);
     printf("%s\n", buffer);
 
     close(sockfd);
