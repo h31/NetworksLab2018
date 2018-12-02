@@ -58,36 +58,31 @@ int main(int argc, char *argv[]) {
 
     clilen = sizeof(serv_addr);
 	
-    while(!isClose){
+    while(!isClose) {
 	    printf("Please enter the message: ");
 	    bzero(buffer, sizeof(buffer));
 	    fgets(buffer, sizeof(buffer)-1, stdin);
-	    if (strstr(buffer, "\\q") != NULL) 
-		{
-			closeApp();
+	    if (strstr(buffer, "\\q") != NULL) {
+		closeApp();
 	    }
 	    /* Send message to the server */
-		n = sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, clilen);
+	    n = sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, clilen);
 
-	    if (n < 0) 
-		{
-			perror("ERROR writing sendto");
-			closeApp();
+	    if (n < 0) {
+		perror("ERROR writing sendto");
+		closeApp();
 	    }
 		
 	    /* Now read server response */
 	    bzero(buffer, 256);
 	    n = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &serv_addr, &clilen);
+	    if (strstr(buffer, "Server closed. Don't send anything, please") != NULL) {
+		isClose = CLOSED;
+	    }
 
-		if (strstr(buffer, "Server closed. Don't send anything, please") != NULL)
-		{
-			isClose = CLOSED;
-		}
-
-	    if (n <= 0) 
-		{
-			perror("ERROR reading from recv");
-			closeApp();
+	    if (n <= 0) {
+		perror("ERROR reading from recv");
+		closeApp();
 	    }
 
 	    printf("%s\n", buffer);
