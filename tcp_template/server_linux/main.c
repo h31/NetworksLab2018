@@ -10,6 +10,10 @@
 int sockfd;
 int clients = 0;
 
+typedef struct {
+	int socket;
+} requestDataStruct;
+
 //the thread function
 void *connection_handler(void *);
 
@@ -68,7 +72,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
     int status;
-    pthtred_t controling;
+    pthread_t controling;
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -169,7 +173,7 @@ void *connection_handler(void *sockfd)
        }
 
     thread_close(sock);
-    return;
+    return 0;
 }
 
 
