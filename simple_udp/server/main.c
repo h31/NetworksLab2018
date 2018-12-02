@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 
 int sockfd;
+unsigned int clilen;
 struct sockaddr_in cli_addr;
 
 //the thread function
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serv_addr;
     ssize_t n;
     int status;
-    pthtred_t controling;
+    pthread_t controling;
 
 
     /* First call to socket() function */
