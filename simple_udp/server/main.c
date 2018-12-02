@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
     n = recvfrom(sockfd, buffer, 255, 0, (struct sockaddr *) &cli_addr, &clilen);
     printf("Here is the message: %s\n", buffer);
 
-    thread_request(newsockfd);
+    thread_request();
     }
 }
 
