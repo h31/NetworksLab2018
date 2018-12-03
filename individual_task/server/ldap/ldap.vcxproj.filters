@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков\Store">
+      <UniqueIdentifier>{4c44cb50-df49-460d-a46f-7ef7cc4c13eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Data structures">
+      <UniqueIdentifier>{3d667fd6-83c2-486e-9a09-fbe2de960ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Util">
+      <UniqueIdentifier>{dbf7deae-d41f-4d32-8267-022d393ac571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Store">
+      <UniqueIdentifier>{1c8c8869-e307-4974-a428-c91ace6de5ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\LDAP">
+      <UniqueIdentifier>{a0fc1044-a3c3-4f1c-96ab-e605006af0f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\LDAP">
+      <UniqueIdentifier>{88a744a5-bc99-4989-ad51-5298c72a6189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Util">
+      <UniqueIdentifier>{d3b8c16e-77be-470d-aa16-4d501f58509d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadSafeStoreWrapper.cpp">
+      <Filter>Исходные файлы\Store</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryTreeStore.cpp">
+      <Filter>Исходные файлы\Store</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectClass.cpp">
+      <Filter>Исходные файлы\LDAP</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryUtil.cpp">
+      <Filter>Исходные файлы\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.cpp">
+      <Filter>Исходные файлы\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="AttributeHelper.cpp">
+      <Filter>Исходные файлы\LDAP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ThreadSafeStoreWrapper.h">
+      <Filter>Файлы заголовков\Store</Filter>
+    </ClInclude>
+    <ClInclude Include="Store.h">
+      <Filter>Файлы заголовков\Store</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryTreeStore.h">
+      <Filter>Файлы заголовков\Store</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedList.h">
+      <Filter>Файлы заголовков\Data structures</Filter>
+    </ClInclude>
+    <ClInclude Include="Attribute.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectClass.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryUtil.h">
+      <Filter>Файлы заголовков\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtil.h">
+      <Filter>Файлы заголовков\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="AttributeHelper.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

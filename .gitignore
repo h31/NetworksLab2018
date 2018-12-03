@@ -1,6 +1,9 @@
 
 # Created by https://www.gitignore.io/api/c++,latex,cmake,netbeans,qtcreator,visualstudio
 
+### My store ###
+individual_task\server\ldap\store
+
 ### C++ ###
 # Prerequisites
 *.d
