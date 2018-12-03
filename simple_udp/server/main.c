@@ -12,9 +12,9 @@ int main(int argc, char *argv[]) {
     uint16_t portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-
     char * buffer = NULL;
     size_t msg_len;
+    unsigned int servlen = sizeof(serv_addr);
 
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     portno = (uint16_t) atoi(argv[2]);
 
     /* Create a socket point */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     if (sockfd < 0) {
         perror("ERROR opening socket");
@@ -43,24 +43,14 @@ int main(int argc, char *argv[]) {
     bcopy(server->h_addr, (char *) &serv_addr.sin_addr.s_addr, (size_t) server->h_length);
     serv_addr.sin_port = htons(portno);
 
-    /* Now connect to the server */
-    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR connecting");
-        exit(1);
-    }
-
-    /* Now ask for a message from the user, this message
-       * will be read by server
-    */
-
     printf("Please enter the message: ");
     if((msg_len = getline(&buffer, &msg_len, stdin) == -1)) {
     	perror("ERROR reading the message");
-	    exit(1);
+	exit(1);
     }
 
     /* Send message to the server */
-    n = send(sockfd, buffer, strlen(buffer), 0);
+    n = sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, servlen);
 
     if (n < 0) {
         perror("ERROR writing to socket");
@@ -70,14 +60,9 @@ int main(int argc, char *argv[]) {
     /* Now read server response */
     bzero(buffer, 256);
     
-    while(1) {
-         n = read(sockfd, buffer, 255, 0);
-         printf("%s\n", buffer);
-         bzero(buffer, 256);
-         if (n < 255) break;
-    }
+    n = recv(sockfd, buffer, 255, 0);
+    printf("%s\n", buffer);
 
-    shutdown(sockfd, 2);
     close(sockfd);
     return 0;
 }
