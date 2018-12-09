@@ -1,33 +1,30 @@
 #include "ThreadSafeStoreWrapper.h"
 
+class ScopeLock {
+private:
+	std::mutex& mutex;
+public:
+	ScopeLock(std::mutex& mutex) : mutex(mutex) {
+		mutex.lock();
+	}
+	~ScopeLock() {
+		mutex.unlock();
+	}
+};
+
 ThreadSafeStoreWrapper::ThreadSafeStoreWrapper(Store& store) : store(store) {}
 
 void ThreadSafeStoreWrapper::addRecord(const char* name, const char* data) {
-	accessMutex.lock();
-	try {
-		store.addRecord(name, data);
-		accessMutex.unlock();
-	} catch (const char* error) {
-		accessMutex.unlock();
-		throw;
-	}
+	ScopeLock lock(accessMutex);
+	store.addRecord(name, data);
 }
 
 void ThreadSafeStoreWrapper::deleteRecord(const char* name) {
-	accessMutex.lock();
-	try {
-		store.deleteRecord(name);
-		accessMutex.unlock();
-	}
-	catch (const char* error) {
-		accessMutex.unlock();
-		throw;
-	}
+	ScopeLock lock(accessMutex);
+	store.deleteRecord(name);
 }
 
 const char* ThreadSafeStoreWrapper::getRecord(const char* name) {
-	accessMutex.lock();
-	const char* searchResult = store.getRecord(name);
-	accessMutex.unlock();
-	return searchResult;
+	ScopeLock lock(accessMutex);
+	return store.getRecord(name);
 }
