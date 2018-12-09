@@ -24,7 +24,7 @@ const char* DirectoryTreeStore::getRecord(const char* name) {
 	std::string fullpath = FileUtil::findFile(prefix, name);
 
 	if (fullpath.empty()) {
-		throw "File does not exits";
+		throw "File does not exist";
 	}
 
 	std::string readData = FileUtil::readFile(fullpath);

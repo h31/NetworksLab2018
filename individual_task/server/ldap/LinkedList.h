@@ -1,6 +1,8 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
+#include <functional>
+
 template<class T> class Node {
 public:
 	T value;
@@ -8,32 +10,8 @@ public:
 	Node(T value, Node* next) : value(value), next(next) { }
 };
 
-template<class T> class Iterator {
-private:
-	Node<T>* head;
-
-public:
-	Iterator(Node<T>* head) : head(head) { }
-
-	T value() {
-		return head->value;
-	}
-
-	bool hasNext() {
-		if (head != nullptr) {
-			return head->next != nullptr;
-		}
-		return false;
-	}
-
-	T next() {
-		head = head->next;
-		return head->value;
-	}
-};
-
 template<class T> class LinkedList {
-private:
+protected:
 	Node<T>* head;
 	Node<T>* tail;
 	int counter;
@@ -53,6 +31,14 @@ public:
 		}
 
 		counter++;
+	}
+
+	void forEach(std::function<void(T)> lambda) {
+		Node<T>* current = head;
+		while (current != nullptr) {
+			lambda(current->value);
+			current = current->next;
+		}
 	}
 
 	void remove(T value) {
@@ -87,10 +73,6 @@ public:
 		delete current;
 
 		counter--;
-	}
-
-	Iterator<T>* iterator() {
-		return new Iterator<T>(head);
 	}
 
 	int count() {

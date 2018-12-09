@@ -34,6 +34,9 @@
     <Filter Include="Файлы заголовков\Util">
       <UniqueIdentifier>{d3b8c16e-77be-470d-aa16-4d501f58509d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\Server">
+      <UniqueIdentifier>{cf10dc67-0ed4-42c2-a2da-585c912e3aba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="ObjectClassTypeHelper.cpp">
       <Filter>Исходные файлы\LDAP</Filter>
+    </ClCompile>
+    <ClCompile Include="ScopeLock.cpp">
+      <Filter>Исходные файлы\Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +106,15 @@
     </ClInclude>
     <ClInclude Include="ObjectClassTypeHelper.h">
       <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Файлы заголовков\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="ScopeLock.h">
+      <Filter>Файлы заголовков\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadSafeLinkedList.h">
+      <Filter>Файлы заголовков\Data structures</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

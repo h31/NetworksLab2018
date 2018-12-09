@@ -4,7 +4,7 @@
 class ThreadSafeStoreWrapper : public Store {
 private:
 	Store& store;
-	std::mutex accessMutex;
+	std::mutex barrierMutex;
 
 public:
 	ThreadSafeStoreWrapper(Store& store);
