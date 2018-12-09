@@ -57,6 +57,12 @@
     <ClCompile Include="AttributeHelper.cpp">
       <Filter>Исходные файлы\LDAP</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectClassAttributesFactory.cpp">
+      <Filter>Исходные файлы\LDAP</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectClassTypeHelper.cpp">
+      <Filter>Исходные файлы\LDAP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThreadSafeStoreWrapper.h">
@@ -84,6 +90,15 @@
       <Filter>Файлы заголовков\Util</Filter>
     </ClInclude>
     <ClInclude Include="AttributeHelper.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectClassType.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectClassAttributesFactory.h">
+      <Filter>Файлы заголовков\LDAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectClassTypeHelper.h">
       <Filter>Файлы заголовков\LDAP</Filter>
     </ClInclude>
   </ItemGroup>

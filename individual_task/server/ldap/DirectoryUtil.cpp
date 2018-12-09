@@ -2,17 +2,16 @@
 #include <direct.h>
 #include <Windows.h>
 
-bool DirectoryUtil::makePath(char* path) {
-	char* backslashPointer;
-	for (backslashPointer = strchr(path + 1, '\\'); backslashPointer; backslashPointer = strchr(backslashPointer + 1, '\\')) {
-		*backslashPointer = '\0';
-
-		if (_mkdir(path) == ENOENT) {
-			*backslashPointer = '\\';
+bool DirectoryUtil::makePath(std::string path) {
+	size_t backslashIndex;
+	for (backslashIndex = path.find('\\', 1); backslashIndex != std::string::npos; backslashIndex = path.find('\\', backslashIndex + 1)) {
+		path[backslashIndex] = '\0';
+		if (_mkdir(path.c_str()) == ENOENT) {
+			path[backslashIndex] = '\\';
 			return false;
 		}
 
-		*backslashPointer = '\\';
+		path[backslashIndex] = '\\';
 	}
 
 	return true;

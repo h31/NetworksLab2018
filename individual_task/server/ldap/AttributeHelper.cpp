@@ -22,7 +22,7 @@ bool AttributeHelper::isValid(Attribute attribute, const char* value, bool requi
 	}
 }
 
-const char* AttributeHelper::namedAttribute(Attribute attribute) {
+std::string AttributeHelper::namedAttribute(Attribute attribute) {
 	switch (attribute) {
 	case authPassword:		return "authPassword";
 	case cn:				return "cn";
@@ -46,6 +46,6 @@ const char* AttributeHelper::namedAttribute(Attribute attribute) {
 	case uidNumber:			return "uidNumber";
 	case userPassword:		return "userPassword";
 	case uses:				return "uses";
-	default:				return nullptr;
+	default:				throw;
 	}
 }

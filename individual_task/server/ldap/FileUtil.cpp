@@ -1,54 +1,49 @@
 #include "FileUtil.h"
 #include <Windows.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
-bool FileUtil::createAndWriteToFile(const char* filename, const char* data) {
-	FILE* newFile;
+bool FileUtil::createAndWriteToFile(std::string filename, std::string data) {
+	std::ifstream existenceCheck(filename);
+	if (!existenceCheck.fail()) {
+		return false;
+	}
+	existenceCheck.close();
 
-	if (fopen_s(&newFile, filename, "wx") != 0) {
+	std::ofstream outputFile(filename);
+
+	if (!outputFile.is_open()) {
 		return false;
 	}
 
-	fprintf(newFile, data);
-	fclose(newFile);
+	outputFile << data;
+
+	outputFile.close();
 
 	return true;
 }
 
-char* FileUtil::readFile(const char* filename) {
-	FILE* file;
-	
-	if (fopen_s(&file, filename, "rb") != 0) {
-		return nullptr;
+std::string FileUtil::readFile(std::string filename) {
+	std::ifstream file(filename);
+
+	if (!file.is_open()) {
+		return std::string();
 	}
 
-	fseek(file, 0, SEEK_END);
-	long length = ftell(file);
-	char* buffer = (char*)malloc((length + 1) * sizeof(char));
-
-	fseek(file, 0, SEEK_SET);
-	long readSize = fread(buffer, sizeof(char), length, file);
-
-	if (readSize != length) {
-		free(buffer);
-		return nullptr;
-	}
-
-	buffer[length] = '\0';
-
-	fclose(file);
-
-	return buffer;
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return buffer.str();
 }
 
-char* FileUtil::findFile(const char* currentSearchFolder, const char* filename) {
+std::string FileUtil::findFile(std::string currentSearchFolder, std::string filename) {
 	char currentSearchFolderWithWildcard[MAX_PATH];
-	sprintf_s(currentSearchFolderWithWildcard, MAX_PATH, "%s\\*", currentSearchFolder);
+	sprintf_s(currentSearchFolderWithWildcard, MAX_PATH, "%s\\*", currentSearchFolder.c_str());
 
 	WIN32_FIND_DATA object;
 	HANDLE handle = FindFirstFile(currentSearchFolderWithWildcard, &object);
 	if (handle == INVALID_HANDLE_VALUE) {
-		return nullptr;
+		return std::string();
 	}
 
 	do {
@@ -56,17 +51,15 @@ char* FileUtil::findFile(const char* currentSearchFolder, const char* filename) 
 			continue;
 		}
 
-		char* currentObjectPath = (char*)malloc(MAX_PATH * sizeof(char));
-		sprintf_s(currentObjectPath, MAX_PATH, "%s\\%s", currentSearchFolder, object.cFileName);
+		char currentObjectPath[MAX_PATH];
+		sprintf_s(currentObjectPath, MAX_PATH, "%s\\%s", currentSearchFolder.c_str(), object.cFileName);
 
-		if (strstr(object.cFileName, filename) != 0 && (object.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) != 0) {
+		if (strstr(object.cFileName, filename.c_str()) != 0 && (object.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) != 0) {
 			FindClose(handle);
-			return currentObjectPath;
-		}
-		else if ((object.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-			char* subfolderSearchResult = findFile(currentObjectPath, filename);
-			free(currentObjectPath);
-			if (subfolderSearchResult == nullptr) {
+			return std::string(currentObjectPath);
+		} else if ((object.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+			std::string subfolderSearchResult = findFile(std::string(currentObjectPath), filename);
+			if (subfolderSearchResult.empty()) {
 				continue;
 			}
 			FindClose(handle);
@@ -76,9 +69,9 @@ char* FileUtil::findFile(const char* currentSearchFolder, const char* filename) 
 
 	FindClose(handle);
 
-	return nullptr;
+	return std::string();
 }
 
-bool FileUtil::deleteFile(const char* filename) {
-	return remove(filename) == 0;
+bool FileUtil::deleteFile(std::string filename) {
+	return remove(filename.c_str()) == 0;
 }

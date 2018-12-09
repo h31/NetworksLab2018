@@ -1,9 +1,10 @@
 #include "Store.h"
+#include <string>
 
 class DirectoryTreeStore : public Store {
 private:
-	const char* prefix;
-	char* mallocPathWithPrefix(const char* name);
+	std::string prefix;
+	std::string createPathWithPrefix(std::string name);
 
 public:
 	DirectoryTreeStore();

@@ -16,10 +16,12 @@ int main() {
 	ThreadSafeStoreWrapper* threadSafeStore = new ThreadSafeStoreWrapper(*treeStore);
 	std::cout << threadSafeStore->addRecord("p1\\p2\\p3\\p4\\file.txt", "456") << "\r\n";
 	//std::cout << threadSafeStore->deleteRecord("p1\\p2\\p3\\p4\\file.txt") << "\r\n";
-	const char* result = threadSafeStore->getRecord("asd");
+	const char* result = threadSafeStore->getRecord("fi");
 	if (result) {
 		std::cout << result << "\r\n";
 	}
+
+	std::cout << static_cast<ObjectClassType>(150) << "\r\n";
 
 	{
 		/*
@@ -51,20 +53,19 @@ int main() {
 	}
 
 	{
-		ObjectClassPosixAccount account;
-		std::cout << account.isReady() << "\r\n";
-		std::cout << account.setAttribute("123") << "\r\n";
-		std::cout << account.setAttribute("123") << "\r\n";
-		std::cout << account.setAttribute("123") << "\r\n";
-		std::cout << account.setAttribute("123") << "\r\n";
-		std::cout << account.setAttribute("\\123\\123123\\123") << "\r\n";
-		std::cout << account.isReady() << "\r\n";
-
-		std::cout << ObjectClassDevice().setAttribute("255.199.0.1") << "\r\n";
+		ObjectClass account(posixAccount);
+		std::cout << account.setAttribute(cn, "123") << "\r\n";
+		std::cout << account.setAttribute(uid, "123") << "\r\n\r\n";
+		std::cout << ObjectClass::serialize(account) << "\r\n";
+		threadSafeStore->addRecord("lol.txt", account.description());
+		try {
+			ObjectClass::deserialize("0\n1:123\n18:456\n19:789\n4:012\n5:\\add\\\n");
+		} catch (const char* error) {
+			std::cout << error << "\r\n";
+		}
 	}
 
-
-//	std::cout << threadSafeStore->addRecord("123", "456") << "\r\n";
+	//std::cout << threadSafeStore->addRecord("123", "456") << "\r\n";
 	//std::cout << threadSafeStore->addRecord("123", "456") << "\r\n";
 	//threadSafeStore->findRecord("111111111111");
 	getchar();

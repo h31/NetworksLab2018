@@ -1,7 +1,9 @@
+#include <string>
+
 class FileUtil {
 public:
-	static bool createAndWriteToFile(const char* filename, const char* data);
-	static char* readFile(const char* filename);
-	static char* findFile(const char* folder, const char* name);
-	static bool deleteFile(const char* filename);
+	static bool createAndWriteToFile(std::string filename, std::string data);
+	static std::string readFile(std::string filename);
+	static std::string findFile(std::string folder, std::string name);
+	static bool deleteFile(std::string filename);
 };

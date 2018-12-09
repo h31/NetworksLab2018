@@ -1,44 +1,31 @@
+#ifndef OBJECT_CLASS_H
+#define OBJECT_CLASS_H
+
 #include "Attribute.h"
-#include "LinkedList.h"
+#include "ObjectClassType.h"
+#include <vector>
 
 class AttributePair {
 public:
-	const Attribute attribute;
-	const char* value = nullptr;
-	const bool isRequired;
 	AttributePair(Attribute attribute, bool required) : attribute(attribute), isRequired(required) { }
+	const Attribute attribute;
+	std::string value;
+	const bool isRequired;
 };
 
 class ObjectClass {
 private:
-	Iterator<AttributePair*>* iterator = nullptr;
-	Iterator<AttributePair*>* getIterator();
-protected:
-	LinkedList<AttributePair*> attributes;
+	std::vector<Attribute> attributes;
+	std::vector<AttributePair> values;
+	ObjectClassType type;
 public:
-	//ObjectClass();
-	bool setAttribute(const char* value);
-	const char* currentAttributeName();
+	ObjectClass(ObjectClassType type);
+	bool setAttribute(Attribute attribute, const char* value);
+	std::vector<Attribute> getAttributes();
 	bool isReady();
-	~ObjectClass();
+	const char* description();
+	static const char* serialize(ObjectClass object);
+	static ObjectClass deserialize(const char* data);
 };
 
-class ObjectClassPosixAccount : public ObjectClass {
-public:
-	ObjectClassPosixAccount();
-};
-
-class ObjectClassDevice : public ObjectClass {
-public:
-	ObjectClassDevice();
-};
-
-class ObjectClassPosixGroup : public ObjectClass {
-public:
-	ObjectClassPosixGroup();
-};
-
-class ObjectClassResource : public ObjectClass {
-public:
-	ObjectClassResource();
-};
+#endif

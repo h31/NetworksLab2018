@@ -1,132 +1,120 @@
 #include "ObjectClass.h"
+#include "ObjectClassAttributesFactory.h"
 #include "AttributeHelper.h"
+#include "ObjectClassTypeHelper.h"
+#include <algorithm>
+#include <sstream>
 
-bool ObjectClass::setAttribute(const char* value) {
-	Iterator<AttributePair*>* iterator = getIterator();
-	AttributePair* pair = iterator->value();
-	
-	if (pair == nullptr) {
+ObjectClass::ObjectClass(ObjectClassType type) : type(type) {
+	this->values = ObjectClassAttributesFactory::create(type);
+
+	for (int index = 0; index < values.size(); ++index) {
+		attributes.push_back(values[index].attribute);
+	}
+}
+
+bool ObjectClass::setAttribute(Attribute attribute, const char* value) {
+	std::vector<Attribute>::iterator searchIterator = std::find(attributes.begin(), attributes.end(), attribute);
+	if (searchIterator == attributes.end()) {
 		return false;
 	}
 
-	if (!AttributeHelper::isValid(pair->attribute, value, pair->isRequired)) {
+	int index = std::distance(attributes.begin(), searchIterator);
+	AttributePair& pair = values[index];
+	if (!AttributeHelper::isValid(attribute, value, pair.isRequired)) {
 		return false;
 	}
 
-	pair->value = value;
-	iterator->next();
+	pair.value = std::string(value);
 
 	return true;
-	
-	//if (attributes.count() == 0) {
-	//	return false;
-	//}
-
-	//auto setAttribute = [value](AttributePair* pair) -> bool {
-	//	if (!AttributeHelper::isValid(attribute, value, pair->isRequired)) {
-	//		return false;
-	//	}
-
-	//	pair->value = value;
-	//	return true;
-	//};
-
-	//Iterator<AttributePair*> iterator = attributes.iterator();
-	//AttributePair* current = iterator.value();
-	//while (iterator.hasNext()) {
-	//	if (current->attribute == attribute) {
-	//		return setAttribute(current);
-	//	}
-
-	//	current = iterator.next();
-	//}
-
-	//if (current->attribute == attribute) {
-	//	return setAttribute(current);
-	//}
-
-	//return false;
 }
 
-Iterator<AttributePair*>* ObjectClass::getIterator() {
-	if (iterator == nullptr) {
-		iterator = attributes.iterator();
-	}
-	return iterator;
-}
-
-const char* ObjectClass::currentAttributeName() {
-	return AttributeHelper::namedAttribute(getIterator()->value()->attribute);
+std::vector<Attribute> ObjectClass::getAttributes() {
+	return attributes;
 }
 
 bool ObjectClass::isReady() {
-	if (attributes.count() == 0) {
-		return true;
-	}
-	
-	Iterator<AttributePair*>* iterator = attributes.iterator();
-	AttributePair* current = iterator->value();
-	while (iterator->hasNext()) {
-		if (current->isRequired && current->value == nullptr) {
+	for (int index = 0; index < values.size(); ++index) {
+		AttributePair pair = values[index];
+		if (pair.isRequired && pair.value.empty()) {
 			return false;
 		}
-		current = iterator->next();
 	}
-	return !current->isRequired || current->value != nullptr;
+
+	return true;
 }
 
-ObjectClass::~ObjectClass() {
-	if (attributes.count() > 0) {
-		Iterator<AttributePair*> iterator = attributes.iterator();
-		AttributePair* current = iterator.value();
-		while (iterator.hasNext()) {
-			delete current;
-			current = iterator.next();
+const char* ObjectClass::description() {
+	std::stringstream buffer;
+
+	buffer << "objectClass: " << ObjectClassTypeHelper::namedObjectClassType(type) << "\n";
+	for (int index = 0; index < values.size(); ++index) {
+		AttributePair pair = values[index];
+		buffer << AttributeHelper::namedAttribute(pair.attribute) << ": " << pair.value << "\n";
+	}
+
+	return _strdup(buffer.str().c_str());
+}
+
+const char* ObjectClass::serialize(ObjectClass object) {
+	std::stringstream buffer;
+	buffer << object.type << "\n";
+
+	std::vector<AttributePair> values = object.values;
+	for (int index = 0; index < values.size(); ++index) {
+		AttributePair pair = values[index];
+		buffer << pair.attribute << ":" << pair.value << "\n";
+	}
+
+	return _strdup(buffer.str().c_str());
+}
+
+ObjectClass ObjectClass::deserialize(const char* data) {
+	std::string buffer(data);
+	if (buffer.empty()) {
+		throw "Object class is empty";
+	}
+
+	int typeIndex = buffer.find("\n");
+	if (typeIndex == std::string::npos) {
+		throw "Object class type is missing";
+	}
+	ObjectClassType typeID = ObjectClassType(std::stoi(buffer.substr(0, typeIndex)));
+	if (typeID < ObjectClassType::posixAccount || typeID > ObjectClassType::resource) {
+		throw "Bad object class type";
+	}
+
+	ObjectClass object = ObjectClass(typeID);
+
+	int currentRowIndex;
+	for (currentRowIndex = typeIndex + 1; currentRowIndex != std::string::npos; currentRowIndex = buffer.find("\n", currentRowIndex + 1) + 1) {
+		if (currentRowIndex >= buffer.size()) {
+			break;
 		}
-		delete current;
+
+		int colonIndex = buffer.find(":", currentRowIndex);
+		if (colonIndex == std::string::npos) {
+			throw "Bad object class format";
+		}
+		Attribute attribute = Attribute(std::stoi(buffer.substr(currentRowIndex, colonIndex - currentRowIndex)));
+		if (attribute < Attribute::authPassword || attribute > Attribute::uses) {
+			throw "Bad object class format";
+		}
+
+		int nextRowIndex = buffer.find("\n", colonIndex);
+		if (nextRowIndex == std::string::npos) {
+			throw "Bad object class format";
+		}
+		std::string value = buffer.substr(colonIndex + 1, nextRowIndex - colonIndex - 1);
+		if (!object.setAttribute(attribute, value.c_str())) {
+			throw "Bad object class format";
+		}
 	}
-}
 
-ObjectClassPosixAccount::ObjectClassPosixAccount() {
-	attributes.add(new AttributePair(cn, true));
-	attributes.add(new AttributePair(uid, true));
-	attributes.add(new AttributePair(uidNumber, true));
-	attributes.add(new AttributePair(gidNumber, true));
-	attributes.add(new AttributePair(homeDirectory, true));
+	if (!object.isReady()) {
+		throw "Required attributes are not set";
+	}
 
-	attributes.add(new AttributePair(loginShell, false));
-	attributes.add(new AttributePair(gecos, false));
-	attributes.add(new AttributePair(description, false));
-	attributes.add(new AttributePair(authPassword, false));
-}
-
-ObjectClassDevice::ObjectClassDevice() {
-	attributes.add(new AttributePair(cn, true));
-
-	attributes.add(new AttributePair(description, false));
-	attributes.add(new AttributePair(i, false));
-	attributes.add(new AttributePair(networkAddress, false));
-	attributes.add(new AttributePair(o, false));
-	attributes.add(new AttributePair(owner, false));
-	attributes.add(new AttributePair(serialNumber, false));
-	attributes.add(new AttributePair(svcType, false));
-	attributes.add(new AttributePair(svcTypeID, false));
-	attributes.add(new AttributePair(svcInfo, false));
-}
-
-ObjectClassPosixGroup::ObjectClassPosixGroup() {
-	attributes.add(new AttributePair(gidNumber, true));
-
-	attributes.add(new AttributePair(authPassword, false));
-	attributes.add(new AttributePair(userPassword, false));
-	attributes.add(new AttributePair(memberUid, false));
-	attributes.add(new AttributePair(description, false));
-}
-
-ObjectClassResource::ObjectClassResource() {
-	attributes.add(new AttributePair(cn, true));
-
-	attributes.add(new AttributePair(hostResourceName, false));
-	attributes.add(new AttributePair(localityName, false));
-	attributes.add(new AttributePair(uses, false));
+	return object;
 }
