@@ -2,18 +2,27 @@
 
 ThreadSafeStoreWrapper::ThreadSafeStoreWrapper(Store& store) : store(store) {}
 
-bool ThreadSafeStoreWrapper::addRecord(const char* name, const char* data) {
+void ThreadSafeStoreWrapper::addRecord(const char* name, const char* data) {
 	accessMutex.lock();
-	bool additionResult = store.addRecord(name, data);
-	accessMutex.unlock();
-	return additionResult;
+	try {
+		store.addRecord(name, data);
+		accessMutex.unlock();
+	} catch (const char* error) {
+		accessMutex.unlock();
+		throw;
+	}
 }
 
-bool ThreadSafeStoreWrapper::deleteRecord(const char* name) {
+void ThreadSafeStoreWrapper::deleteRecord(const char* name) {
 	accessMutex.lock();
-	bool deletionResult = store.deleteRecord(name);
-	accessMutex.unlock();
-	return deletionResult;
+	try {
+		store.deleteRecord(name);
+		accessMutex.unlock();
+	}
+	catch (const char* error) {
+		accessMutex.unlock();
+		throw;
+	}
 }
 
 const char* ThreadSafeStoreWrapper::getRecord(const char* name) {

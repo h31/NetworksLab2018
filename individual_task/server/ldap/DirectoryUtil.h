@@ -2,5 +2,5 @@
 
 class DirectoryUtil {
 public:
-	static bool makePath(std::string path);
+	static void makePath(std::string path);
 };

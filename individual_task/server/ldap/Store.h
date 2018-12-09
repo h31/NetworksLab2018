@@ -3,8 +3,8 @@
 
 class Store {
 public:
-	virtual bool addRecord(const char* name, const char* data) = 0;
-	virtual bool deleteRecord(const char* name) = 0;
+	virtual void addRecord(const char* name, const char* data) = 0;
+	virtual void deleteRecord(const char* name) = 0;
 	virtual const char* getRecord(const char* name) = 0;
 };
 

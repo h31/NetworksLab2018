@@ -6,32 +6,31 @@ DirectoryTreeStore::DirectoryTreeStore() {
 	prefix = std::string("store");
 }
 
-bool DirectoryTreeStore::addRecord(const char* name, const char* data) {
+void DirectoryTreeStore::addRecord(const char* name, const char* data) {
 	std::string path = createPathWithPrefix(name);
 
-	if (!DirectoryUtil::makePath(path)) {
-		return false;
-	}
+	DirectoryUtil::makePath(path);
 
-	return FileUtil::createAndWriteToFile(path, data);
+	FileUtil::createAndWriteToFile(path, data);
 }
 
-bool DirectoryTreeStore::deleteRecord(const char* name) {
+void DirectoryTreeStore::deleteRecord(const char* name) {
 	std::string path = createPathWithPrefix(name);
-	return FileUtil::deleteFile(path);
+
+	FileUtil::deleteFile(path);
 }
 
 const char* DirectoryTreeStore::getRecord(const char* name) {
 	std::string fullpath = FileUtil::findFile(prefix, name);
 
 	if (fullpath.empty()) {
-		return nullptr;
+		throw "File does not exits";
 	}
 
 	std::string readData = FileUtil::readFile(fullpath);
 
 	if (readData.empty()) {
-		return nullptr;
+		throw "Internal server error";
 	}
 
 	fullpath.erase(0, fullpath.find('\\'));

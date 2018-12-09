@@ -4,24 +4,22 @@
 #include <fstream>
 #include <sstream>
 
-bool FileUtil::createAndWriteToFile(std::string filename, std::string data) {
+void FileUtil::createAndWriteToFile(std::string filename, std::string data) {
 	std::ifstream existenceCheck(filename);
 	if (!existenceCheck.fail()) {
-		return false;
+		throw "File already exists";
 	}
 	existenceCheck.close();
 
 	std::ofstream outputFile(filename);
 
 	if (!outputFile.is_open()) {
-		return false;
+		throw "Internal server error";
 	}
 
 	outputFile << data;
 
 	outputFile.close();
-
-	return true;
 }
 
 std::string FileUtil::readFile(std::string filename) {
@@ -72,6 +70,8 @@ std::string FileUtil::findFile(std::string currentSearchFolder, std::string file
 	return std::string();
 }
 
-bool FileUtil::deleteFile(std::string filename) {
-	return remove(filename.c_str()) == 0;
+void FileUtil::deleteFile(std::string filename) {
+	if (remove(filename.c_str()) != 0) {
+		throw "Internal server error";
+	}
 }

@@ -8,7 +8,7 @@ private:
 
 public:
 	DirectoryTreeStore();
-	bool addRecord(const char* name, const char* data);
-	bool deleteRecord(const char* name);
+	void addRecord(const char* name, const char* data);
+	void deleteRecord(const char* name);
 	const char* getRecord(const char* name);
 };
