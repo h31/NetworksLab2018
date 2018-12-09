@@ -1,0 +1,7 @@
+objectClass: posixAccount
+cn: LDAP User 1
+uid: ldapuser1
+uidNumber: 1001
+gidNumber: 10
+homeDirectory: /home/ldapuser1
+loginShell: /bin/bash

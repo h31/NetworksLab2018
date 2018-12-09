@@ -1,100 +1,132 @@
 #include "ObjectClass.h"
 #include "AttributeHelper.h"
 
-bool ObjectClass::setAttribute(Attribute attribute, char* value) {
-	return setAttributeForList(requiredAttributes, attribute, value) || setAttributeForList(optionalAttributes, attribute, value);
-}
-
-bool ObjectClass::setAttributeForList(LinkedList<AttributePair>& list, Attribute attribute, char* value) {
-	if (list.count() == 0) {
+bool ObjectClass::setAttribute(const char* value) {
+	Iterator<AttributePair*>* iterator = getIterator();
+	AttributePair* pair = iterator->value();
+	
+	if (pair == nullptr) {
 		return false;
 	}
 
-	auto setAttribute = [attribute, value](AttributePair pair) -> bool {
-		if (!AttributeHelper::isValid(attribute, value)) {
-			return false;
-		}
-
-		pair.value = value;
-		return true;
-	};
-
-	Iterator<AttributePair> iterator = list.iterator();
-	AttributePair current = iterator.value();
-	while (iterator.hasNext()) {
-		if (current.attribute == attribute) {
-			return setAttribute(current);
-		}
-
-		current = iterator.next();
+	if (!AttributeHelper::isValid(pair->attribute, value, pair->isRequired)) {
+		return false;
 	}
 
-	if (current.attribute == attribute) {
-		return setAttribute(current);
+	pair->value = value;
+	iterator->next();
+
+	return true;
+	
+	//if (attributes.count() == 0) {
+	//	return false;
+	//}
+
+	//auto setAttribute = [value](AttributePair* pair) -> bool {
+	//	if (!AttributeHelper::isValid(attribute, value, pair->isRequired)) {
+	//		return false;
+	//	}
+
+	//	pair->value = value;
+	//	return true;
+	//};
+
+	//Iterator<AttributePair*> iterator = attributes.iterator();
+	//AttributePair* current = iterator.value();
+	//while (iterator.hasNext()) {
+	//	if (current->attribute == attribute) {
+	//		return setAttribute(current);
+	//	}
+
+	//	current = iterator.next();
+	//}
+
+	//if (current->attribute == attribute) {
+	//	return setAttribute(current);
+	//}
+
+	//return false;
+}
+
+Iterator<AttributePair*>* ObjectClass::getIterator() {
+	if (iterator == nullptr) {
+		iterator = attributes.iterator();
 	}
+	return iterator;
+}
+
+const char* ObjectClass::currentAttributeName() {
+	return AttributeHelper::namedAttribute(getIterator()->value()->attribute);
 }
 
 bool ObjectClass::isReady() {
-	if (requiredAttributes.count() == 0) {
+	if (attributes.count() == 0) {
 		return true;
 	}
 	
-	Iterator<AttributePair> requiredIterator = requiredAttributes.iterator();
-	AttributePair current = requiredIterator.value();
-	while (requiredIterator.hasNext()) {
-		if (current.value == nullptr) {
+	Iterator<AttributePair*>* iterator = attributes.iterator();
+	AttributePair* current = iterator->value();
+	while (iterator->hasNext()) {
+		if (current->isRequired && current->value == nullptr) {
 			return false;
 		}
-		current = requiredIterator.next();
+		current = iterator->next();
 	}
-	return current.value != nullptr;
+	return !current->isRequired || current->value != nullptr;
+}
+
+ObjectClass::~ObjectClass() {
+	if (attributes.count() > 0) {
+		Iterator<AttributePair*> iterator = attributes.iterator();
+		AttributePair* current = iterator.value();
+		while (iterator.hasNext()) {
+			delete current;
+			current = iterator.next();
+		}
+		delete current;
+	}
 }
 
 ObjectClassPosixAccount::ObjectClassPosixAccount() {
-	requiredAttributes.add(AttributePair(cn));
-	requiredAttributes.add(AttributePair(uid));
-	requiredAttributes.add(AttributePair(uidNumber));
-	requiredAttributes.add(AttributePair(gidNumber));
-	requiredAttributes.add(AttributePair(homeDirectory));
+	attributes.add(new AttributePair(cn, true));
+	attributes.add(new AttributePair(uid, true));
+	attributes.add(new AttributePair(uidNumber, true));
+	attributes.add(new AttributePair(gidNumber, true));
+	attributes.add(new AttributePair(homeDirectory, true));
 
-	optionalAttributes.add(AttributePair(loginShell));
-	optionalAttributes.add(AttributePair(gecos));
-	optionalAttributes.add(AttributePair(description));
-	optionalAttributes.add(AttributePair(authPassword));
+	attributes.add(new AttributePair(loginShell, false));
+	attributes.add(new AttributePair(gecos, false));
+	attributes.add(new AttributePair(description, false));
+	attributes.add(new AttributePair(authPassword, false));
 }
 
 ObjectClassDevice::ObjectClassDevice() {
-	requiredAttributes.add(AttributePair(cn));
+	attributes.add(new AttributePair(cn, true));
 
-	optionalAttributes.add(AttributePair(description));
-	optionalAttributes.add(AttributePair(i));
-	optionalAttributes.add(AttributePair(networkAddress));
-	optionalAttributes.add(AttributePair(ou));
-	optionalAttributes.add(AttributePair(o));
-	optionalAttributes.add(AttributePair(owner));
-	optionalAttributes.add(AttributePair(seeAlso));
-	optionalAttributes.add(AttributePair(serialNumber));
-	optionalAttributes.add(AttributePair(svcType));
-	optionalAttributes.add(AttributePair(svcTypeID));
-	optionalAttributes.add(AttributePair(svcInfo));
+	attributes.add(new AttributePair(description, false));
+	attributes.add(new AttributePair(i, false));
+	attributes.add(new AttributePair(networkAddress, false));
+	attributes.add(new AttributePair(o, false));
+	attributes.add(new AttributePair(owner, false));
+	attributes.add(new AttributePair(serialNumber, false));
+	attributes.add(new AttributePair(svcType, false));
+	attributes.add(new AttributePair(svcTypeID, false));
+	attributes.add(new AttributePair(svcInfo, false));
 }
 
 ObjectClassPosixGroup::ObjectClassPosixGroup() {
-	requiredAttributes.add(AttributePair(gidNumber));
+	attributes.add(new AttributePair(gidNumber, true));
 
-	optionalAttributes.add(AttributePair(authPassword));
-	optionalAttributes.add(AttributePair(userPassword));
-	optionalAttributes.add(AttributePair(memberUid));
-	optionalAttributes.add(AttributePair(description));
+	attributes.add(new AttributePair(authPassword, false));
+	attributes.add(new AttributePair(userPassword, false));
+	attributes.add(new AttributePair(memberUid, false));
+	attributes.add(new AttributePair(description, false));
 }
 
 ObjectClassResource::ObjectClassResource() {
-	requiredAttributes.add(AttributePair(cn));
+	attributes.add(new AttributePair(cn, true));
 
-	optionalAttributes.add(AttributePair(hostResourceName));
-	optionalAttributes.add(AttributePair(localityName));
-	optionalAttributes.add(AttributePair(organization));
-	optionalAttributes.add(AttributePair(organizationalUnit));
-	optionalAttributes.add(AttributePair(seeAlso));
-	optionalAttributes.add(AttributePair(uses));
+	attributes.add(new AttributePair(hostResourceName, false));
+	attributes.add(new AttributePair(localityName, false));
+	attributes.add(new AttributePair(uses, false));
 }

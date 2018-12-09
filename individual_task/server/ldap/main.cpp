@@ -16,12 +16,13 @@ int main() {
 	ThreadSafeStoreWrapper* threadSafeStore = new ThreadSafeStoreWrapper(*treeStore);
 	std::cout << threadSafeStore->addRecord("p1\\p2\\p3\\p4\\file.txt", "456") << "\r\n";
 	//std::cout << threadSafeStore->deleteRecord("p1\\p2\\p3\\p4\\file.txt") << "\r\n";
-	const char* result = threadSafeStore->getRecord("super");
+	const char* result = threadSafeStore->getRecord("asd");
 	if (result) {
 		std::cout << result << "\r\n";
 	}
 
 	{
+		/*
 		LinkedList<int> list;
 		list.add(1);
 		list.add(2);
@@ -46,10 +47,20 @@ int main() {
 		while (iter.hasNext()) {
 			std::cout << iter.next() << "\r\n";
 		}
+		*/
 	}
 
 	{
-		std::cout << ObjectClassPosixAccount().setAttribute(cn, nullptr) << "\r\n";
+		ObjectClassPosixAccount account;
+		std::cout << account.isReady() << "\r\n";
+		std::cout << account.setAttribute("123") << "\r\n";
+		std::cout << account.setAttribute("123") << "\r\n";
+		std::cout << account.setAttribute("123") << "\r\n";
+		std::cout << account.setAttribute("123") << "\r\n";
+		std::cout << account.setAttribute("\\123\\123123\\123") << "\r\n";
+		std::cout << account.isReady() << "\r\n";
+
+		std::cout << ObjectClassDevice().setAttribute("255.199.0.1") << "\r\n";
 	}
 
 

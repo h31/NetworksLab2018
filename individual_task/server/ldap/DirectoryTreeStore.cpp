@@ -30,16 +30,30 @@ bool DirectoryTreeStore::deleteRecord(const char* name) {
 }
 
 const char* DirectoryTreeStore::getRecord(const char* name) {
-	char* fullpath = DirectoryUtil::findFile(prefix, name);
+	char* fullpath = FileUtil::findFile(prefix, name);
 
 	if (fullpath == nullptr) {
+		return nullptr;
+	}
+
+	char* readData = FileUtil::readFile(fullpath);
+
+	if (readData == nullptr) {
+		free(fullpath);
 		return nullptr;
 	}
 
 	char* trimmedStorePath = _strdup(strchr(fullpath, '\\'));
 	free(fullpath);
 
-	return trimmedStorePath;
+	int responseSize = (strlen(trimmedStorePath) + 2 + strlen(readData) + 1) * sizeof(char);
+	char* response = (char*)malloc(responseSize);
+	sprintf_s(response, responseSize, "%s\r\n%s", trimmedStorePath, readData);
+
+	free(trimmedStorePath);
+	free(readData);
+
+	return response;
 }
 
 char* DirectoryTreeStore::mallocPathWithPrefix(const char* name) {

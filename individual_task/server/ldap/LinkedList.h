@@ -10,25 +10,25 @@ public:
 
 template<class T> class Iterator {
 private:
-	Node<T>* current;
+	Node<T>* head;
 
 public:
-	Iterator(Node<T>* current) : current(current) { }
+	Iterator(Node<T>* head) : head(head) { }
 
 	T value() {
-		return current->value;
+		return head->value;
 	}
 
 	bool hasNext() {
-		if (current != nullptr) {
-			return current->next != nullptr;
+		if (head != nullptr) {
+			return head->next != nullptr;
 		}
 		return false;
 	}
 
-	T& next() {
-		current = current->next;
-		return current->value;
+	T next() {
+		head = head->next;
+		return head->value;
 	}
 };
 
@@ -89,8 +89,8 @@ public:
 		counter--;
 	}
 
-	Iterator<T> iterator() {
-		return Iterator<T>(head);
+	Iterator<T>* iterator() {
+		return new Iterator<T>(head);
 	}
 
 	int count() {

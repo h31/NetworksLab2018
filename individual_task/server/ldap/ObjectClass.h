@@ -3,20 +3,24 @@
 
 class AttributePair {
 public:
-	Attribute attribute;
-	char* value = nullptr;
-	AttributePair(Attribute attribute) : attribute(attribute) { }
+	const Attribute attribute;
+	const char* value = nullptr;
+	const bool isRequired;
+	AttributePair(Attribute attribute, bool required) : attribute(attribute), isRequired(required) { }
 };
 
 class ObjectClass {
 private:
-	bool setAttributeForList(LinkedList<AttributePair>& list, Attribute attribute, char* value);
+	Iterator<AttributePair*>* iterator = nullptr;
+	Iterator<AttributePair*>* getIterator();
 protected:
-	LinkedList<AttributePair> requiredAttributes;
-	LinkedList<AttributePair> optionalAttributes;
+	LinkedList<AttributePair*> attributes;
 public:
-	bool setAttribute(Attribute attribute, char* value);
+	//ObjectClass();
+	bool setAttribute(const char* value);
+	const char* currentAttributeName();
 	bool isReady();
+	~ObjectClass();
 };
 
 class ObjectClassPosixAccount : public ObjectClass {

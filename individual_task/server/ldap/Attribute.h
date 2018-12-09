@@ -5,29 +5,25 @@ enum Attribute {
 	authPassword,  // string
 	cn, // string
 	description, // string
-	gecos, // string list
+	gecos, // string
 	gidNumber, // integer
 	homeDirectory, // path
-	hostResourceName,// string
+	hostResourceName, // string
 	i, // string
 	localityName, // string
 	loginShell, // path
 	memberUid, // integer
 	networkAddress, // ip
 	o, // string
-	organization, // string
-	organizationalUnit, // string
-	ou,
-	owner,
-	seeAlso,
-	serialNumber,
-	svcInfo,
-	svcType,
-	svcTypeID,
-	uid,
+	owner, // string
+	serialNumber, // string
+	svcInfo, // string
+	svcType, // string
+	svcTypeID, // integer
+	uid, // string
 	uidNumber, // integer
-	userPassword,
-	uses
+	userPassword, // string
+	uses // string
 };
 
 #endif
