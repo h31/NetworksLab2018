@@ -25,6 +25,9 @@ void quit_request_handler(int sockfd, struct request req);
 // Funciton for sending response
 void send_response(int sockfd, char* type, char* payload);
 
+// Free allocated for request memory
+void free_mem(struct request req);
+
 // Errors handler
 int handle_errors(int sockfd, int error);
 // Function for checking if request arguments are NULL
@@ -82,6 +85,7 @@ void* listen_func(void* arg)
     while (1) {
         mlog("Waiting for connections");
         // Accept new connection
+        sleep(0.01);
         newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
         if (newsockfd < 0) {
             mlog("ERROR on accept");
@@ -105,16 +109,27 @@ void* listen_func(void* arg)
 void* client_func(void* arg)
 {
     int sockfd = *(int*)arg; // Client socket
-    struct request req; // Request from client
+    
+    // Get port number
+    struct sockaddr_in sin;
+	socklen_t len = sizeof(sin);
+	if (getpeername(sockfd, (struct sockaddr *)&sin, &len) == -1)
+		close_socket(sockfd, "ERROR on getpeername");
+	else
+		mlogf("port number: %d", ntohs(sin.sin_port));
+    
     int res = 0;
 
     while (1) {
+    	struct request req; // Request from client
         mlog("Waiting for request");
         res = get_request(sockfd, &req);
 
         // Handle errors
-        if (handle_errors(sockfd, res))
+        if (handle_errors(sockfd, res)) {
+        	free_mem(req);
             continue;
+        }
 
         // Log request
         mlogf("REQUEST:\nType: %s\nArg1: %s\nArg2: %s\nToken: %s", req.comm.type, req.comm.arg1, req.comm.arg2, req.token);
@@ -140,12 +155,7 @@ void* client_func(void* arg)
         }
         
         // Free memory
-        mlog("Start free request memory");
-        free(req.comm.type);
-        if(req.comm.arg1 != NULL) free(req.comm.arg1);
-        if(req.comm.arg2 != NULL) free(req.comm.arg2);
-        if(req.token != NULL) free(req.token);
-        mlog("Free request memory is done");
+        free_mem(req);
     }
     close_socket(sockfd, "no errors");
     pthread_exit(0);
@@ -374,6 +384,15 @@ int handle_errors(int sockfd, int error)
         pthread_exit(1);
         break;
     }
+}
+
+void free_mem(struct request req) {
+	mlog("Start free request memory");
+    free(req.comm.type);
+    if(req.comm.arg1 != NULL) free(req.comm.arg1);
+    if(req.comm.arg2 != NULL) free(req.comm.arg2);
+    if(req.token != NULL) free(req.token);
+    mlog("Free request memory is done");
 }
 
 // Function for checking arguments
