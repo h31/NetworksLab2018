@@ -42,7 +42,7 @@ DWORD WINAPI handleClientConnection(CONST LPVOID arg) {
 	SOCKET newsockfd = *(SOCKET*)arg;
 
 	struct timeval timeout;
-	timeout.tv_sec = MAX_SECONDS_READ_TIMEOUT;
+	timeout.tv_sec = MAX_SECONDS_READ_TIMEOUT * 1000;
 	timeout.tv_usec = 0;
 	// On timeout read returns -1
 	setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
