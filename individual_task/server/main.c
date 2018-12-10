@@ -111,25 +111,25 @@ void* listen_func(void* arg)
 void* client_func(void* arg)
 {
     int sockfd = (int)arg; // Client socket
-    
+
     // Get port number
     struct sockaddr_in sin;
-	socklen_t len = sizeof(sin);
-	if (getpeername(sockfd, (struct sockaddr *)&sin, &len) == -1)
-		close_socket(sockfd, "ERROR on getpeername");
-	else
-		mlogf("Starting client socket with fd=%d, port number= %d", sockfd, ntohs(sin.sin_port));
-    
+    socklen_t len = sizeof(sin);
+    if (getpeername(sockfd, (struct sockaddr*)&sin, &len) == -1)
+        close_socket(sockfd, "ERROR on getpeername");
+    else
+        mlogf("Starting client socket with fd=%d, port number= %d", sockfd, ntohs(sin.sin_port));
+
     int res = 0;
 
     while (1) {
-    	struct request req; // Request from client
+        struct request req; // Request from client
         mlog("Waiting for request");
         res = get_request(sockfd, &req);
 
         // Handle errors
         if (handle_errors(sockfd, res)) {
-        	free_mem(req);
+            free_mem(req);
             continue;
         }
 
@@ -155,7 +155,7 @@ void* client_func(void* arg)
             mlogf("Unknow type of request: %s", req.comm.type);
             send_response(sockfd, RESPONSE_ERROR, "Unknown type of request");
         }
-        
+
         // Free memory
         free_mem(req);
     }
@@ -389,12 +389,16 @@ int handle_errors(int sockfd, int error)
     }
 }
 
-void free_mem(struct request req) {
-	mlog("Start free request memory");
+void free_mem(struct request req)
+{
+    mlog("Start free request memory");
     free(req.comm.type);
-    if(req.comm.arg1 != NULL) free(req.comm.arg1);
-    if(req.comm.arg2 != NULL) free(req.comm.arg2);
-    if(req.token != NULL) free(req.token);
+    if (req.comm.arg1 != NULL)
+        free(req.comm.arg1);
+    if (req.comm.arg2 != NULL)
+        free(req.comm.arg2);
+    if (req.token != NULL)
+        free(req.token);
     mlog("Free request memory is done");
 }
 

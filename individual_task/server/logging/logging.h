@@ -1,8 +1,8 @@
+#include <netinet/in.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
-#include <netinet/in.h>
 
 #define mlog(msg) internal_log(__func__, msg)
 #define mlogf(msg, ...) internal_log_formatted(__func__, msg, __VA_ARGS__)

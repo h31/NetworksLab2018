@@ -24,9 +24,8 @@ int get_request(int sockfd, struct request* req)
     }
     mlogf("Request length = %d", message_length);
     mlog("REQUEST LENGTH BUFER BYTES:");
-    for(res=0;res<sizeof(int);res++)
-    {
-    	mlogf("BUF: %X", buf[res]);
+    for (res = 0; res < sizeof(int); res++) {
+        mlogf("BUF: %X", buf[res]);
     }
 
     // Clear memory
@@ -34,7 +33,7 @@ int get_request(int sockfd, struct request* req)
 
     // Read byte array of request
     buf = (char*)malloc(message_length * sizeof(char));
-    
+
     mlog("Memory for request allocated");
 
     res = read_from(sockfd, buf, message_length);
@@ -46,14 +45,13 @@ int get_request(int sockfd, struct request* req)
     mlog("Request was read");
     mlogf("DEBUG: pointers of request\nreq=%d\nreq.comm=%d\nreq.comm.type=%d", &req, &(req->comm), &(req->comm.type));
     mlog("BUFER BYTES:");
-    for(res=0;res<message_length;res++)
-    {
-    	mlogf("BUF: %X", buf[res]);
+    for (res = 0; res < message_length; res++) {
+        mlogf("BUF: %X", buf[res]);
     }
 
     // Now convert byte array to request struct
     // Get length of type
-    
+
     bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
     buf_pointer += sizeof(int);
 

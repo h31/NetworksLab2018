@@ -14,7 +14,7 @@ void internal_log(char const* caller_func, char* msg)
     time(&timer);
     tm_info = localtime(&timer);
     gettimeofday(&tval, NULL);
-    
+
     // Get thread id
     sprintf(pthread_id_buf, "thr:%u: ", (unsigned int)pthread_self());
 
