@@ -1,9 +1,9 @@
 #include <iostream>
 #include "DirectoryTreeStore.h"
-#include "ThreadSafeStoreWrapper.h"
 #include "DirectoryUtil.h"
 #include "ThreadSafeLinkedList.h"
 #include "ObjectClass.h"
+#include "Server.h"
 
 int main() {
 	//	Store* store = new DirectoryTreeStore();
@@ -36,15 +36,18 @@ int main() {
 		list.add(4);
 		list.add(5);
 		list.add(6);
-		auto funct = [](int lol) {
+		list.forEach([](int lol) {
 			std::cout << lol * lol << "\r\n";
-		};
-		list.forEach(funct);
+		});
 	}
 
 	//std::cout << threadSafeStore->addRecord("123", "456") << "\r\n";
 	//std::cout << threadSafeStore->addRecord("123", "456") << "\r\n";
 	//threadSafeStore->findRecord("111111111111");
+
+	Server server(5001, 100, 5000);
+	server.start();
+
 	getchar();
 	return 0;
 }

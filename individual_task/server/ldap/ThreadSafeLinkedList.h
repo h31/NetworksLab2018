@@ -4,7 +4,7 @@
 #include "LinkedList.h"
 #include "ScopeLock.h"
 
-template<typename T> class ThreadSafeLinkedList : public LinkedList<T> {
+template<class T> class ThreadSafeLinkedList : public LinkedList<T> {
 private:
 	std::mutex barrierMutex;
 

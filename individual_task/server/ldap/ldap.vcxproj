@@ -125,6 +125,7 @@
     <ClCompile Include="ObjectClassAttributesFactory.cpp" />
     <ClCompile Include="ObjectClassTypeHelper.cpp" />
     <ClCompile Include="ScopeLock.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="ThreadSafeStoreWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -133,8 +134,6 @@
     <ClInclude Include="DirectoryTreeStore.h" />
     <ClInclude Include="DirectoryUtil.h" />
     <ClInclude Include="FileUtil.h" />
-    <ClInclude Include="ThreadSafeLinkedList.h" />
-    <ClInclude Include="LinkedList.h" />
     <ClInclude Include="ObjectClass.h" />
     <ClInclude Include="ObjectClassAttributesFactory.h" />
     <ClInclude Include="ObjectClassType.h" />

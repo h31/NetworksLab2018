@@ -16,9 +16,6 @@
     <Filter Include="Файлы заголовков\Store">
       <UniqueIdentifier>{4c44cb50-df49-460d-a46f-7ef7cc4c13eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы заголовков\Data structures">
-      <UniqueIdentifier>{3d667fd6-83c2-486e-9a09-fbe2de960ac5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Исходные файлы\Util">
       <UniqueIdentifier>{dbf7deae-d41f-4d32-8267-022d393ac571}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,9 @@
     </Filter>
     <Filter Include="Файлы заголовков\Server">
       <UniqueIdentifier>{cf10dc67-0ed4-42c2-a2da-585c912e3aba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Server">
+      <UniqueIdentifier>{bb07c13a-e1fd-4501-af08-33ab47ff57f7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +69,9 @@
     <ClCompile Include="ScopeLock.cpp">
       <Filter>Исходные файлы\Util</Filter>
     </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Исходные файлы\Server</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThreadSafeStoreWrapper.h">
@@ -79,9 +82,6 @@
     </ClInclude>
     <ClInclude Include="DirectoryTreeStore.h">
       <Filter>Файлы заголовков\Store</Filter>
-    </ClInclude>
-    <ClInclude Include="LinkedList.h">
-      <Filter>Файлы заголовков\Data structures</Filter>
     </ClInclude>
     <ClInclude Include="Attribute.h">
       <Filter>Файлы заголовков\LDAP</Filter>
@@ -112,9 +112,6 @@
     </ClInclude>
     <ClInclude Include="ScopeLock.h">
       <Filter>Файлы заголовков\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadSafeLinkedList.h">
-      <Filter>Файлы заголовков\Data structures</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
