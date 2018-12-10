@@ -85,7 +85,6 @@ void* listen_func(void* arg)
     while (1) {
         mlog("Waiting for connections");
         // Accept new connection
-        sleep(0.01);
         newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
         if (newsockfd < 0) {
             mlog("ERROR on accept");
@@ -98,17 +97,20 @@ void* listen_func(void* arg)
         pthread_t client_thread; // Thread for messaging
         int result; // Result of thread creating
         result = pthread_create(&client_thread, NULL, client_func,
-            &newsockfd); // Create new thread
+            newsockfd); // Create new thread
         if (result != 0) {
             close_socket(newsockfd, "Error while creating client thread");
         }
+        //char test[200];
+        //sprintf(test, "pstree -cap > sockfd%d.txt", newsockfd);
+        //system(test);
     }
     pthread_exit(0);
 }
 
 void* client_func(void* arg)
 {
-    int sockfd = *(int*)arg; // Client socket
+    int sockfd = (int)arg; // Client socket
     
     // Get port number
     struct sockaddr_in sin;
@@ -116,7 +118,7 @@ void* client_func(void* arg)
 	if (getpeername(sockfd, (struct sockaddr *)&sin, &len) == -1)
 		close_socket(sockfd, "ERROR on getpeername");
 	else
-		mlogf("port number: %d", ntohs(sin.sin_port));
+		mlogf("Starting client socket with fd=%d, port number= %d", sockfd, ntohs(sin.sin_port));
     
     int res = 0;
 
@@ -338,8 +340,9 @@ void del_request_handler(int sockfd, struct request req)
 void quit_request_handler(int sockfd, struct request req)
 {
     // Check if token is NULL
-    if (check_token(sockfd, req))
+    if (check_token(sockfd, req)) {
         return;
+    }
     // End session
     int res;
     res = delete_session(req.token);
