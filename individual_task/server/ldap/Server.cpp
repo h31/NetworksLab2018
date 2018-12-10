@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "ScopeLock.h"
 #include <functional>
 #include <iostream>
 #include <string>
@@ -98,10 +99,8 @@ void Server::handleClientConnection(SOCKET newsockfd) {
 		totalBytesCount = recv(newsockfd, buffer, sizeof(buffer) - 1, 0);
 
 		if (totalBytesCount == -1) {
-			std::cout << "omg\r\n";
 			continue;
-		}
-		else if (totalBytesCount <= 0) {
+		} else if (totalBytesCount <= 0) {
 			cleanUpClientConnectionThread(newsockfd);
 			return;
 		}
@@ -119,8 +118,7 @@ void Server::handleClientConnection(SOCKET newsockfd) {
 
 			if (additionalBytesCount == -1) {
 				continue;
-			}
-			else if (additionalBytesCount <= 0) {
+			} else if (additionalBytesCount <= 0) {
 				cleanUpClientConnectionThread(newsockfd);
 				return;
 			}

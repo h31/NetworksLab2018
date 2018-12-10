@@ -1,4 +1,3 @@
-#include "ThreadSafeLinkedList.h"
 #include "ThreadSafeStoreWrapper.h"
 
 #pragma comment (lib, "ws2_32.lib")
