@@ -1,11 +1,11 @@
 #include "ThreadSafeStoreWrapper.h"
+#include "DirectoryTreeStore.h"
+#include "ThreadSafeLinkedList.h"
+#include "SafeSocket.h"
 
-#pragma comment (lib, "ws2_32.lib")
 #include <stdio.h>
 #include <stdlib.h>
-#include <winsock2.h>
 #include <io.h>
-#include <mutex>
 #include <thread>
 
 class Server {
@@ -13,18 +13,18 @@ private:
 	const int port;
 	const int maxClientsCount;
 	const int readTimeoutInMilliseconds;
-	int activeClientsCount = 0;
-	std::mutex activeClientsCountMutex;
 	bool closed = false;
-	SOCKET serverSocket = 0;
+	SafeSocket serverSocket;
+	ThreadSafeLinkedList<SafeSocket*> clientsList;
+	Store* store = new ThreadSafeStoreWrapper(new DirectoryTreeStore());
 
 	void closeAllClients();
 	void acceptNewClients();
-	void handleClientConnection(SOCKET newsockfd);
-	void closeSocket(SOCKET socket);
-	void cleanUpClientConnectionThread(SOCKET socket);
+	void handleClientConnection(SafeSocket* clientSocket);
+	void cleanUpClientConnection(SafeSocket* clientSocket);
 
 public:
 	Server(int port, int maxClientsCount, int readTimeoutInMilliseconds);
+	~Server();
 	void start();
 };

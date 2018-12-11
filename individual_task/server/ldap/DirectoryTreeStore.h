@@ -10,5 +10,5 @@ public:
 	DirectoryTreeStore();
 	void addRecord(const char* name, const char* data);
 	void deleteRecord(const char* name);
-	const char* getRecord(const char* name);
+	char* getRecord(const char* name);
 };

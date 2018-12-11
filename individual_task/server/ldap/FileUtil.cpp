@@ -72,6 +72,6 @@ std::string FileUtil::findFile(std::string currentSearchFolder, std::string file
 
 void FileUtil::deleteFile(std::string filename) {
 	if (remove(filename.c_str()) != 0) {
-		throw "Internal server error";
+		throw "Failed to delete file";
 	}
 }

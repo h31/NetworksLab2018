@@ -8,7 +8,7 @@ void DirectoryUtil::makePath(std::string path) {
 		path[backslashIndex] = '\0';
 		if (_mkdir(path.c_str()) == ENOENT) {
 			path[backslashIndex] = '\\';
-			throw "Internal server error";
+			throw "Path is invalid";
 		}
 
 		path[backslashIndex] = '\\';

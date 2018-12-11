@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{FFE814C1-1CD3-4D7E-899B-D89EF3C182EA}</ProjectGuid>
-    <RootNamespace>ldap</RootNamespace>
+    <ProjectGuid>{35B34D35-6EB0-4760-8E68-678751E737A7}</ProjectGuid>
+    <RootNamespace>client</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,7 +76,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\eldar\Documents\GitHub\NetworksLab2018\individual_task\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -85,7 +85,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\eldar\Documents\GitHub\NetworksLab2018\individual_task\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -122,26 +121,7 @@
     <ClCompile Include="..\..\common\ObjectClassAttributesFactory.cpp" />
     <ClCompile Include="..\..\common\ObjectClassTypeHelper.cpp" />
     <ClCompile Include="..\..\common\SafeSocket.cpp" />
-    <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="DirectoryTreeStore.cpp" />
-    <ClCompile Include="DirectoryUtil.cpp" />
-    <ClCompile Include="ScopeLock.cpp" />
-    <ClCompile Include="Server.cpp" />
-    <ClCompile Include="ThreadSafeStoreWrapper.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DirectoryTreeStore.h" />
-    <ClInclude Include="DirectoryUtil.h" />
-    <ClInclude Include="FileUtil.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="ScopeLock.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="Store.h" />
-    <ClInclude Include="ThreadSafeStoreWrapper.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="ldap.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

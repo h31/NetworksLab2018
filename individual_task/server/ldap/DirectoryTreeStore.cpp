@@ -20,7 +20,7 @@ void DirectoryTreeStore::deleteRecord(const char* name) {
 	FileUtil::deleteFile(path);
 }
 
-const char* DirectoryTreeStore::getRecord(const char* name) {
+char* DirectoryTreeStore::getRecord(const char* name) {
 	std::string fullpath = FileUtil::findFile(prefix, name);
 
 	if (fullpath.empty()) {
@@ -41,5 +41,9 @@ const char* DirectoryTreeStore::getRecord(const char* name) {
 }
 
 std::string DirectoryTreeStore::createPathWithPrefix(std::string name) {
-	return prefix + "\\" + name;
+	if (name.empty()) {
+		throw "Name could not be empty";
+	}
+
+	return (name.find("\\") == 0) ? prefix + name : prefix + "\\" + name;
 }

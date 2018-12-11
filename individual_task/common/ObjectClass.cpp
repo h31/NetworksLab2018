@@ -45,7 +45,7 @@ bool ObjectClass::isReady() {
 	return true;
 }
 
-const char* ObjectClass::description() {
+char* ObjectClass::description() {
 	std::stringstream buffer;
 
 	buffer << "objectClass: " << ObjectClassTypeHelper::namedObjectClassType(type) << "\n";
@@ -57,7 +57,7 @@ const char* ObjectClass::description() {
 	return _strdup(buffer.str().c_str());
 }
 
-const char* ObjectClass::serialize(ObjectClass object) {
+char* ObjectClass::serialize(ObjectClass object) {
 	std::stringstream buffer;
 	buffer << object.type << "\n";
 

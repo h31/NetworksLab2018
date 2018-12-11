@@ -1,51 +1,55 @@
 #include "Server.h"
-#include "ScopeLock.h"
+#include "ObjectClass.h"
 #include <functional>
 #include <iostream>
-#include <string>
 #include <thread>
 
-#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)  
-#define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
-
 Server::Server(int port, int maxClientsCount, int readTimeoutInMilliseconds) 
-	: port(port), maxClientsCount(maxClientsCount), readTimeoutInMilliseconds(readTimeoutInMilliseconds) { }
+	: port(port), serverSocket(SafeSocket(port)), maxClientsCount(maxClientsCount), readTimeoutInMilliseconds(readTimeoutInMilliseconds) { }
 
 void Server::start() {
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		exit(1);
-	}
-
-	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (serverSocket < 0) {
-		WSACleanup();
-		exit(1);
-	}
-
-	struct sockaddr_in serv_addr;
-	uint16_t portno;
-
-	bzero((char *)&serv_addr, sizeof(serv_addr));
-	portno = port;
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(portno);
-
-	if (bind(serverSocket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-		closeSocket(serverSocket);
-		WSACleanup();
-		exit(1);
-	}
+	//ObjectClass obj = ObjectClass(posixAccount);
+	//obj.setAttribute(cn, "asd");
+	//obj.setAttribute(uid, "123");
+	//obj.setAttribute(uidNumber, "456");
+	//obj.setAttribute(gidNumber, "789");
+	//obj.setAttribute(homeDirectory, "\\123123\\asd");
+	//if (obj.isReady()) {
+	//	store->addRecord("fix.txt", obj.description());
+	//}
 
 	std::thread clientConnectionThread([this] { this->acceptNewClients(); });
 	clientConnectionThread.detach();
 
 	std::string command;
 	while (true) {
+		std::cout << "Write command:\r\n";
 		std::cin >> command;
 		if (command.compare("q") == 0) {
 			break;
+		} else if (command.compare("lc") == 0) {
+			std::cout << "Active clients(total = " << clientsList.count() << "):\r\n";
+			int index = 0;
+			clientsList.forEach([index](SafeSocket* clientSocket) mutable {
+				std::cout << index++ << ": " << clientSocket << "\r\n"; 
+			});
+		} else if (command.compare("kick") == 0) {
+			int targetID;
+			std::cin >> targetID;
+			int index = 0;
+			SafeSocket* targetSocket = nullptr;
+			clientsList.forEach([&](SafeSocket* clientSocket) {
+				if (targetID == index) {
+					targetSocket = clientSocket;
+				}
+				++index;
+			});
+
+			if (targetSocket == nullptr) {
+				continue;
+			}
+
+			cleanUpClientConnection(targetSocket);
 		}
 	}
 
@@ -53,103 +57,124 @@ void Server::start() {
 }
 
 void Server::closeAllClients() {
+	serverSocket.close();
 	closed = true;
+	while (clientsList.count() != 0) {
+		Sleep(1000);
+	}
 }
 
 void Server::acceptNewClients() {
-	SOCKET newsockfd;
-	unsigned int clilen;
-	struct sockaddr_in cli_addr;
-	listen(serverSocket, 5);
-	clilen = sizeof(cli_addr);
 	while (!closed) {
-		if (activeClientsCount == maxClientsCount) {
+		if (clientsList.count() == maxClientsCount) {
 			continue;
 		}
-		newsockfd = accept(serverSocket, (struct sockaddr *) &cli_addr, (int*)&clilen);
-		if (newsockfd < 0) {
-			continue;
-		}
-		std::thread handleClientConnectionThread([this, newsockfd] { this->handleClientConnection(newsockfd); });
-		handleClientConnectionThread.detach();
 
-		ScopeLock lock(activeClientsCountMutex);
-		activeClientsCount++;
+		try {
+			SafeSocket* client = serverSocket.acceptClient(readTimeoutInMilliseconds);
+			clientsList.add(client);
+			std::thread handleClientConnectionThread([this, client] { this->handleClientConnection(client); });
+			handleClientConnectionThread.detach();
+		} catch (std::exception const& e) {
+			std::cout << e.what() << "\r\n";
+			continue;
+		}
 	}
 }
 
-void Server::handleClientConnection(SOCKET newsockfd) {
-	struct timeval timeout;
-	timeout.tv_sec = readTimeoutInMilliseconds;
-	timeout.tv_usec = 0;
-	// On timeout read returns -1
-	setsockopt(newsockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-
-	char buffer[256];
-	int totalBytesCount;
-	int additionalBytesCount;
-	int messageBytesLength;
-
-	messageBytesLength = 0;
-
+void Server::handleClientConnection(SafeSocket* clientSocket) {
 	while (!closed) {
 		// Start reading new message
-		bzero(buffer, sizeof(buffer));
+		char* request;
+		try {
+			request = clientSocket->readData([this]() { return !this->closed; });
+		} catch (std::exception const& e) {
+			cleanUpClientConnection(clientSocket);
+			return;
+		}
 
-		totalBytesCount = recv(newsockfd, buffer, sizeof(buffer) - 1, 0);
-
-		if (totalBytesCount == -1) {
+		if (request == nullptr) {
 			continue;
-		} else if (totalBytesCount <= 0) {
-			cleanUpClientConnectionThread(newsockfd);
+		}
+
+		char* response = nullptr;
+		int responseStatus = 0;
+
+		char* tempBuffer = nullptr;
+
+		char* commandPointer;
+		char* firstQuery = strstr(request, "?");
+		char* requestEnd = strstr(request, ";");
+		if (firstQuery != nullptr && requestEnd != nullptr && requestEnd > firstQuery) {
+			requestEnd[0] = '\0';
+			try {
+				if ((commandPointer = strstr(request, "find")) != nullptr && commandPointer == request) {
+					response = store->getRecord(firstQuery + 1);
+				} else if ((commandPointer = strstr(request, "add")) != nullptr && commandPointer == request) {
+					char* secondQuery = strstr(firstQuery, "&");
+					if (secondQuery != nullptr) {
+						secondQuery[0] = '\0';
+						ObjectClass object = ObjectClass::deserialize(secondQuery + 1);
+						tempBuffer = object.description();
+						store->addRecord(firstQuery + 1, tempBuffer);
+					} else {
+						responseStatus = 1;
+					}
+				} else if ((commandPointer = strstr(request, "delete")) != nullptr && commandPointer == request) {
+					store->deleteRecord(firstQuery + 1);
+				} else {
+					responseStatus = 1;
+				}
+			} catch (const char* error) {
+				response = _strdup(error);
+				responseStatus = 1;
+			}
+		} else {
+			responseStatus = 1;
+		}
+
+		free(tempBuffer);
+		free(request);
+
+		if (response == nullptr) {
+			if (responseStatus == 0) {
+				response = _strdup("OK");
+			} else {
+				response = _strdup("Bad request");
+			}
+		}
+
+		int responseWithStatusSize = 1 + 2 + strlen(response) + 1;
+		char* responseWithStatus = (char*)malloc(responseWithStatusSize * sizeof(char));
+		sprintf_s(responseWithStatus, responseWithStatusSize, "%d\r\n%s", responseStatus, response);
+
+		free(response);
+
+		// Write a response to the client
+		try {
+			clientSocket->sendData(responseWithStatus);
+		} catch (std::exception const& e) {
+			free(responseWithStatus);
+			cleanUpClientConnection(clientSocket);
 			return;
 		}
 
-		messageBytesLength = buffer[0];
-
-		while (messageBytesLength > totalBytesCount) {
-			// Continue reading message to assemble full size message
-			if (closed) {
-				cleanUpClientConnectionThread(newsockfd);
-				return;
-			}
-
-			additionalBytesCount = recv(newsockfd, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount, 0);
-
-			if (additionalBytesCount == -1) {
-				continue;
-			} else if (additionalBytesCount <= 0) {
-				cleanUpClientConnectionThread(newsockfd);
-				return;
-			}
-
-			totalBytesCount += additionalBytesCount;
-		}
-
-		/* Write a response to the client */
-		bzero(buffer, sizeof(buffer));
-		sprintf_s(buffer + 1, sizeof(buffer) - 1, "I got your message");
-		buffer[0] = 18;
-		totalBytesCount = send(newsockfd, buffer, buffer[0] + 1, 0);
-
-		if (totalBytesCount < 0) {
-			cleanUpClientConnectionThread(newsockfd);
-			return;
-		}
+		free(responseWithStatus);
 	}
 
 	// Server is finishing -> cleaning up
-	cleanUpClientConnectionThread(newsockfd);
+	cleanUpClientConnection(clientSocket);
 }
 
-void Server::cleanUpClientConnectionThread(SOCKET newsockfd) {
-	closeSocket(newsockfd);
-
-	ScopeLock lock(activeClientsCountMutex);
-	activeClientsCount--;
+void Server::cleanUpClientConnection(SafeSocket* clientSocket) {
+	clientSocket->close();
+	clientsList.remove(clientSocket);
+	delete clientSocket;
 }
 
-void Server::closeSocket(SOCKET socket) {
-	shutdown(socket, SD_BOTH);
-	closesocket(socket);
+Server::~Server() {
+	clientsList.forEach([](SafeSocket* clientSocket) {
+		delete clientSocket;
+	});
+	delete store;
 }

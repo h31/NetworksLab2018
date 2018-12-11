@@ -23,8 +23,8 @@ public:
 	bool setAttribute(Attribute attribute, const char* value);
 	std::vector<Attribute> getAttributes();
 	bool isReady();
-	const char* description();
-	static const char* serialize(ObjectClass object);
+	char* description();
+	static char* serialize(ObjectClass object);
 	static ObjectClass deserialize(const char* data);
 };
 
