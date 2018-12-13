@@ -7,7 +7,7 @@
 int get_list_of_primes(struct prime_numbers* data, char* primes, char* count)
 {
     char* ptr;
-    int n = strtol(count,&ptr,10);
+    int n = (int)strtol(count,&ptr,10);
     int tmp[n];
     int cur_size = 0;
 
@@ -18,7 +18,7 @@ int get_list_of_primes(struct prime_numbers* data, char* primes, char* count)
     }
 
     // Find current count of prime numbers
-    for(int i = 0; i < sizeof(data->primes)/sizeof(data->primes[0]); i++){
+    for(int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++){
         if (data->primes[i] == 0) break;
         cur_size++;
     }

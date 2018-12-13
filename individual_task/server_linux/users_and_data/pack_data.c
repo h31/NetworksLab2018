@@ -14,13 +14,13 @@ void pack_data(struct prime_numbers* data, char* buff)
     int cur_ranges = 0;
 
     // Find current count of prime numbers
-    for (int i = 0; i < sizeof(data->primes)/sizeof(data->primes[0]); i++) {
+    for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
         if (data->primes[i] == 0) break;
         cur_primes++;
     }
 
     // Find current count of ranges numbers
-    for (int i = 0; i < sizeof(data->ranges)/sizeof(data->ranges[0]); i++) {
+    for (int i = 0; i < (int)(sizeof(data->ranges)/sizeof(data->ranges[0])); i++) {
         if (data->ranges[i] == 0) break;
         cur_ranges++;
     }

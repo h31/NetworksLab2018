@@ -4,11 +4,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
 #include <string.h>
 
 #define WORKING_SOCKET 0
@@ -54,6 +52,8 @@ int send_request(int sockfd, struct request* req);
 // Create request from string str
 int parse_request(char* str, struct request* req);
 
+// Get response from server
 int response(int sockfd, struct response* resp);
 
+// Read from socket
 int read_socket(int sockfd, char* buffer, int length);

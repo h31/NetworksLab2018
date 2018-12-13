@@ -29,8 +29,8 @@
 
 struct prime_numbers{
     int range;
-    int ranges[100];
-    int primes[10000];
+    int ranges[10000];
+    int primes[1000000];
 };
 
 // Call this function on start. Creates folders for data

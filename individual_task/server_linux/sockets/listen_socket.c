@@ -10,9 +10,7 @@ int listen_socket()
     struct sockaddr_in serv_addr;
 
     // Create new socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (sockfd < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("ERROR opening socket");
         exit(1);
     }

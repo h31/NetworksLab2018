@@ -7,7 +7,7 @@
 int get_session_client(char* token, char* login)
 {
     char* filename;
-    char* buf[256];
+    char buf[256];
     char* str_token;
     int length;
     int res;
@@ -28,8 +28,7 @@ int get_session_client(char* token, char* login)
         return res;
     }
 
-    // Read money
-    str_token = strtok(buf, "\n"); // Read money
+    str_token = strtok(buf, "\n");
 
     // Convert char array to int
     sscanf(str_token, "%s", login);

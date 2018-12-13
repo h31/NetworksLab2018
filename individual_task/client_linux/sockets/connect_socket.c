@@ -18,8 +18,7 @@ int connect_socket(int argc, char** argv)
     portno = (uint16_t)atoi(argv[2]);
 
     // Create a socket point
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("ERROR opening socket");
         return -1;
     }

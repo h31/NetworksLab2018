@@ -7,8 +7,8 @@
 int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperbound)
 {
     char* ptr;
-    int lb = strtol(lowerbound,&ptr,10);
-    int ub = strtol(upperbound,&ptr,10);
+    int lb = (int)strtol(lowerbound,&ptr,10);
+    int ub = (int)strtol(upperbound,&ptr,10);
     int flag;
     int cur_size = -1, new_size = 0;
 
@@ -40,7 +40,7 @@ int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperboun
     }
 
     // Find current count of prime numbers
-    for(int i = 0; i < sizeof(data->primes)/sizeof(data->primes[0]); i++){
+    for(int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++){
         if (data->primes[i] == 0) break;
         cur_size++;
     }
@@ -64,7 +64,7 @@ int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperboun
             data->primes[cur_size] = lb;
             cur_size++;
         }
-        ++lb;
+        lb++;
     }
 
     new_size = cur_size;

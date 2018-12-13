@@ -6,6 +6,7 @@
 
 void retrieve_data(struct prime_numbers* data, char* buff)
 {
+    char* ptr;
     char* primes;
     char* ranges;
     char* tmp;
@@ -17,25 +18,25 @@ void retrieve_data(struct prime_numbers* data, char* buff)
 
     // Fill server primes from file
     char* prime = strtok(primes, " ");
-    data->primes[0] = atoi(prime);
+    data->primes[0] = (int)strtol(prime, &ptr, 10);
     int i = 1;
     while (prime != NULL){
         prime = strtok(NULL, " ");
         if (prime == NULL) break;
-        data->primes[i] = atoi(prime);
+        data->primes[i] = (int)strtol(prime, &ptr, 10);
         i++;
     }
 
     // Fill server ranges from file
     char* range = strtok(ranges, " \0");
-    data->ranges[0] = atoi(range);
+    data->ranges[0] = (int)strtol(range, &ptr, 10);
     i = 1;
     while (range != NULL){
         range = strtok(NULL, " ");
         if (range == NULL) break;
-        data->ranges[i] = atoi(range);
+        data->ranges[i] = (int)strtol(range, &ptr, 10);
         i++;
     }
 
-    data->range = atoi(tmp);
+    data->range = (int)strtol(tmp, &ptr, 10);
 }

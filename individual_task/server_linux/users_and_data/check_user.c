@@ -7,7 +7,7 @@
 int check_user(char* login)
 {
     char* filename;
-    char* buf[256];
+    char buf[256];
     int length;
     int res;
 
