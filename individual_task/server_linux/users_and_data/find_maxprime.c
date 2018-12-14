@@ -15,5 +15,5 @@ int find_maxprime(struct prime_numbers* data)
         cur_size++;
     }
 
-    return data->primes[cur_size-1];
+    return cur_size == 0 ? 0 : data->primes[cur_size-1];
 }

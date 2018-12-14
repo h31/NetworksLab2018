@@ -17,6 +17,16 @@ int get_list_of_primes(struct prime_numbers* data, char* primes, char* count)
         return INCORRECT_COUNT;
     }
 
+    // Check if prime array is empty
+    int flag = 0;
+    for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
+        if (data->primes[i] != 0) flag = 1;
+    }
+    if (!flag){
+        sprintf(&primes[0], "%d", 0);
+        return OK;
+    }
+
     // Find current count of prime numbers
     for(int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++){
         if (data->primes[i] == 0) break;

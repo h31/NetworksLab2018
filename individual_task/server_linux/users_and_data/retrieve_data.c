@@ -8,13 +8,16 @@ void retrieve_data(struct prime_numbers* data, char* buff)
 {
     char* ptr;
     char* primes;
-    char* ranges;
-    char* tmp;
+    char* range;
+    char* current_range;
 
     // Take primes, ranges and range from file
-    primes = strtok(buff, ";");
-    ranges = strtok(NULL, ";");
-    tmp = strtok(NULL, "\n");
+    current_range = strtok(buff, ";");
+    range = strtok(NULL, ";");
+    primes = strtok(NULL, "\n");
+
+    data->range = (int)strtol(range, &ptr, 10);
+    data->current_range = (int)strtol(current_range, &ptr, 10);
 
     // Fill server primes from file
     char* prime = strtok(primes, " ");
@@ -27,16 +30,4 @@ void retrieve_data(struct prime_numbers* data, char* buff)
         i++;
     }
 
-    // Fill server ranges from file
-    char* range = strtok(ranges, " \0");
-    data->ranges[0] = (int)strtol(range, &ptr, 10);
-    i = 1;
-    while (range != NULL){
-        range = strtok(NULL, " ");
-        if (range == NULL) break;
-        data->ranges[i] = (int)strtol(range, &ptr, 10);
-        i++;
-    }
-
-    data->range = (int)strtol(tmp, &ptr, 10);
 }

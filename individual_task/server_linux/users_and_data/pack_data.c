@@ -6,23 +6,22 @@
 
 void pack_data(struct prime_numbers* data, char* buff)
 {
-    char primes[sizeof(data->primes)/sizeof(data->primes[0])] = {0};
-    char ranges[sizeof(data->ranges)/sizeof(data->ranges[0])] = {0};
-    char tmp[10] = {0};
+    char * primes = (char *) malloc(sizeof(data->primes)/sizeof(data->primes[0]));
+    char range[10] = {0};
+    char current_range[10] = {0};
+
+    sprintf(current_range, "%d", data->current_range);
+    strcat(current_range, ";");
+
+    sprintf(range, "%d", data->range);
+    strcat(range, ";");
 
     int cur_primes = 0;
-    int cur_ranges = 0;
 
     // Find current count of prime numbers
     for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
         if (data->primes[i] == 0) break;
         cur_primes++;
-    }
-
-    // Find current count of ranges numbers
-    for (int i = 0; i < (int)(sizeof(data->ranges)/sizeof(data->ranges[0])); i++) {
-        if (data->ranges[i] == 0) break;
-        cur_ranges++;
     }
 
     // Convert server primes to string
@@ -31,21 +30,12 @@ void pack_data(struct prime_numbers* data, char* buff)
         if (i == cur_primes - 1) index += sprintf(&primes[index], "%d", data->primes[i]);
         else index += sprintf(&primes[index], "%d ", data->primes[i]);
     }
-    strcat(primes, ";");
-
-    // Convert server ranges to string
-    index = 0;
-    for (int i = 0; i < cur_ranges; i++) {
-        if (i == cur_ranges - 1) index += sprintf(&ranges[index], "%d", data->ranges[i]);
-        else index += sprintf(&ranges[index], "%d ", data->ranges[i]);
-    }
-    strcat(ranges, ";");
-
-    sprintf(tmp, "%d", data->range);
 
     // Join all strings to buffer
-    strcat(ranges, tmp);
-    strcat(primes, ranges);
+    strcat(buff, current_range);
+    strcat(buff, range);
     strcat(buff, primes);
+
+    free(primes);
 
 }

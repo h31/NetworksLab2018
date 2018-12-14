@@ -23,7 +23,7 @@ int response_request(int sockfd, char* type, char* payload)
     length = sizeof(int) * 2 + (type_length + payload_length) * sizeof(char);
 
     // Send length to client
-    res = write(sockfd, &length, sizeof(int));
+    res = send(sockfd, &length, sizeof(int), NULL);
     if (res < 0) {
         return WRITING_ERROR;
     }
@@ -49,7 +49,7 @@ int response_request(int sockfd, char* type, char* payload)
     buf_pointer += payload_length * sizeof(char);
 
     // Send response to client
-    res = write(sockfd, buf, length);
+    res = send(sockfd, buf, length, NULL);
     free(buf);
 
     if (res < 0) {

@@ -2,8 +2,10 @@
 #include "sockets/socket.h"
 #include <pthread.h>
 
+#define BUFSIZE 8192
+
 char* filename = "server_data.txt";
-char buff[256];
+char buff[BUFSIZE];
 struct prime_numbers data;
 
 // Function for messaging with client
@@ -37,14 +39,13 @@ int main()
     struct sockaddr_in cli_addr;
     unsigned int clilen;
 
-    bzero(buff, 256);
-    data.range = 100;
-    clear_data(&data);
+    bzero(buff, BUFSIZE);
 
     // Get server data
-    read_file(filename, buff, 256);
+    read_file(filename, buff, BUFSIZE);
     if (strlen(buff) != 0) retrieve_data(&data, buff);
-    bzero(buff, 256);
+    else clear_data(&data);
+    bzero(buff, BUFSIZE);
 
     create_data_storage(); // Create data folders
 
@@ -263,18 +264,49 @@ void calc_request_handler(int sockfd, struct request req)
     if (check_token(sockfd, req))
         return;
 
-    // Check if arguments are NULL
-    if (check_arguments(sockfd, req))
-        return;
+    check_range(&data, buff);
 
-    int res = calculate_data(&data, req.comm.arg1, req.comm.arg2);
-
+    int res = send(sockfd, buff, sizeof(buff), NULL);
     if (handle_errors(sockfd, res))
         return;
 
+    bzero(buff, BUFSIZE);
+    char calc_range[10] = {0};
+    sprintf(calc_range, "%d", data.current_range);
+
+    res = send(sockfd, calc_range, sizeof(calc_range), NULL);
+    if (handle_errors(sockfd, res))
+        return;
+
+    char read_data[BUFSIZE] = {0};
+    res = read_socket(sockfd, read_data, sizeof(read_data));
+    if (handle_errors(sockfd, res))
+        return;
+
+    int cur_primes = 0;
+
+    // Find current count of prime numbers
+    for (int i = 0; i < (int)(sizeof(data.primes)/sizeof(data.primes[0])); i++) {
+        if (data.primes[i] == 0) break;
+        cur_primes++;
+    }
+
+    data.current_range++;
+    char* ptr;
+    char* prime = strtok(read_data, " ");
+    int i = cur_primes;
+    data.primes[i] = (int)strtol(prime, &ptr, 10);
+
+    while (prime != NULL){
+        i++;
+        prime = strtok(NULL, " ");
+        if (prime == NULL) break;
+        data.primes[i] = (int)strtol(prime, &ptr, 10);
+    }
+
     pack_data(&data, buff);
     write_file(filename, buff, sizeof(buff));
-    bzero(buff, 256);
+    bzero(buff, BUFSIZE);
 
     send_response(sockfd, RESPONSE_OK, "Prime numbers was calculated");
 }
@@ -371,17 +403,9 @@ int check_arguments(int sockfd, struct request req)
 {
     // Check if arguments are NULL
 
-    if (strcmp(req.comm.type, "CALC") == 0){
-        if (req.comm.arg1 == NULL || req.comm.arg2 == NULL) {
-            send_response(sockfd, RESPONSE_ERROR, "Illegal arguments");
-            return 1;
-        }
-    }
-    else{
-        if (req.comm.arg1 == NULL) {
+    if (req.comm.arg1 == NULL) {
             send_response(sockfd, RESPONSE_ERROR, "Illegal argument");
             return 1;
-        }
     }
     return 0;
 }

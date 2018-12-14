@@ -28,9 +28,9 @@
 #define SESSION_FOLDER "data/session/"
 
 struct prime_numbers{
+    int current_range;
     int range;
-    int ranges[10000];
-    int primes[1000000];
+    int primes[10000];
 };
 
 // Call this function on start. Creates folders for data
@@ -76,7 +76,7 @@ void retrieve_data(struct prime_numbers* data, char* buff);
 void pack_data(struct prime_numbers* data, char* buff);
 
 // Calculates prime numbers in a range
-int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperbound);
+void check_range(struct prime_numbers* data, char* buff);
 
 //Find maximum prime number from server data
 int find_maxprime(struct prime_numbers* data);

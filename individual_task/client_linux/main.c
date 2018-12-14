@@ -1,12 +1,19 @@
 #include "sockets/socket.h"
+#include "data/data.h"
+
+#define BUFSIZE 8192
 
 int main(int argc, char* argv[])
 {
+    int serv_data[1000];
     struct request req; // Request to server
     struct response resp; // Response from server
     int sockfd; // Socket for connection to server
     int res;
     char buf[256]; // Input buffer
+    char mes_buf[BUFSIZE]; // Message from server
+    char size[10]; // Range for calculation
+    char send_data[BUFSIZE];
     char token[50]; // Token for session
     char login[50]; // Client login
 
@@ -15,6 +22,11 @@ int main(int argc, char* argv[])
 
     // Clear login
     bzero(login, 50);
+
+    // Clear message
+    bzero(mes_buf, BUFSIZE);
+    bzero(size, 10);
+    bzero(send_data, BUFSIZE);
 
     // Connect to server
     sockfd = connect_socket(argc, argv);
@@ -50,7 +62,7 @@ int main(int argc, char* argv[])
             printf("MAXPRIME- получить максимальное вычисленное простое число.\n");
             printf("PRIMES <N> - получение последних N рассчитанных простых чисел.\n");
             printf("RANGE - получение диапазона расчёта простых чисел.\n");
-            printf("CALC <lowerbound> <upperbound> - получение диапазона расчёта простых чисел.\n");
+            printf("CALC - расчёт простых чисел.\n");
             printf("CLEAR - очистка данных обо всех простых числах.\n");
             printf("QUIT - выйти из приложения.\n");
             printf("HELP - вывести справку по командам.\n");
@@ -64,6 +76,33 @@ int main(int argc, char* argv[])
         res = send_request(sockfd, &req);
         if (res < 0) {
             break;
+        }
+
+        if (strcmp(req.comm.type, "CALC") == 0){
+            res = read_socket(sockfd, mes_buf, BUFSIZE);
+            if (res < 0) {
+                break;
+            }
+            strcat(mes_buf, "\n");
+            printf(mes_buf);
+
+            res = read_socket(sockfd, size, 10);
+            if (res < 0) {
+                break;
+            }
+            int range = atoi(size);
+            res = calculate_data(serv_data, range);
+            if (res < 0) {
+                break;
+            }
+
+            pack_data(serv_data, 1000, send_data);
+            res = send(sockfd, send_data, sizeof(send_data), NULL);
+            if (res < 0) {
+                break;
+            }
+
+            //printf("Prime numbers were calculated\n");
         }
 
         // Read response
@@ -96,8 +135,9 @@ int main(int argc, char* argv[])
         if (strcmp(req.comm.type, "QUIT") == 0) {
             break;
         }
+
     }
 
-    close_socket(sockfd, "Good Job!");
+    close_socket(sockfd, "Socket closed");
     return 0;
 }

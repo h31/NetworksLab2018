@@ -22,7 +22,7 @@ int response(int sockfd, struct response* resp)
     }
 
     message_length = *(int*)buf;
-    if (message_length <= 0 || message_length > 256) {
+    if (message_length <= 0 || message_length > 65536) {
         printf("Illegal length of request: %d\n", message_length);
         return REQUEST_LENGTH_ERROR;
     }

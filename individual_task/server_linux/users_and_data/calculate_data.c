@@ -4,9 +4,9 @@
 
 #include "work.h"
 
-int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperbound)
+int calculate_data(struct prime_numbers* data)
 {
-    char* ptr;
+    /*char* ptr;
     int lb = (int)strtol(lowerbound,&ptr,10);
     int ub = (int)strtol(upperbound,&ptr,10);
     int flag;
@@ -81,5 +81,5 @@ int calculate_data(struct prime_numbers* data, char* lowerbound, char* upperboun
         }
     }
 
-    return OK;
+    return OK;*/
 }
