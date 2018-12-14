@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Исходные файлы\server">
+      <UniqueIdentifier>{bb07c13a-e1fd-4501-af08-33ab47ff57f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\store">
+      <UniqueIdentifier>{1c8c8869-e307-4974-a428-c91ace6de5ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\util">
+      <UniqueIdentifier>{dbf7deae-d41f-4d32-8267-022d393ac571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\server">
+      <UniqueIdentifier>{cf10dc67-0ed4-42c2-a2da-585c912e3aba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\store">
+      <UniqueIdentifier>{4c44cb50-df49-460d-a46f-7ef7cc4c13eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\util">
+      <UniqueIdentifier>{d3b8c16e-77be-470d-aa16-4d501f58509d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\common">
+      <UniqueIdentifier>{595c7f24-7bb5-49cd-91c2-eb0d8b7dc81a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadSafeStoreWrapper.cpp">
+      <Filter>Исходные файлы\store</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryTreeStore.cpp">
+      <Filter>Исходные файлы\store</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryUtil.cpp">
+      <Filter>Исходные файлы\util</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.cpp">
+      <Filter>Исходные файлы\util</Filter>
+    </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Исходные файлы\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\AttributeHelper.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ObjectClass.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ObjectClassAttributesFactory.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ObjectClassTypeHelper.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\SafeSocket.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ScopeLock.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ThreadSafeStoreWrapper.h">
+      <Filter>Файлы заголовков\store</Filter>
+    </ClInclude>
+    <ClInclude Include="Store.h">
+      <Filter>Файлы заголовков\store</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryTreeStore.h">
+      <Filter>Файлы заголовков\store</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryUtil.h">
+      <Filter>Файлы заголовков\util</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtil.h">
+      <Filter>Файлы заголовков\util</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Файлы заголовков\server</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ldap.rc">
+      <Filter>Файлы ресурсов</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
