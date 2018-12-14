@@ -1,19 +1,12 @@
 #include "SafeSocket.h"
 
 #pragma comment (lib, "ws2_32.lib")
-#include <winsock2.h>
 #include <stdio.h>
 #include <cstdint>
 #include <WS2tcpip.h>
+#include <exception>
 
-SafeSocket::SafeSocket(SOCKET socket, int readTimeoutInMilliseconds) : _socket(socket) {
-	//usingTimeout = true;
-	//timeval timeout;
-	//timeout.tv_sec = 5;
-	//timeout.tv_usec = 0;
-	//// On timeout read returns -1
-	//setsockopt(_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-}
+SafeSocket::SafeSocket(SOCKET socket) : _socket(socket) { }
 
 SafeSocket::SafeSocket(const char* address, const char* port) {
 	WSADATA wsaData;
@@ -85,11 +78,9 @@ SafeSocket::SafeSocket(int port) {
 		WSACleanup();
 		throw std::exception("Error on create host socket");
 	}
-
-
 }
 
-SafeSocket* SafeSocket::acceptClient(int readTimeoutInMilliseconds) {
+SafeSocket* SafeSocket::acceptClient() {
 	SOCKET clientSocket;
 	unsigned int clilen;
 	sockaddr_in cli_addr;
@@ -102,18 +93,14 @@ SafeSocket* SafeSocket::acceptClient(int readTimeoutInMilliseconds) {
 		throw std::exception("Error on accept client");
 	}
 
-	return new SafeSocket(clientSocket, readTimeoutInMilliseconds);
+	return new SafeSocket(clientSocket);
 }
 
-char* SafeSocket::readData(const std::function<bool()> continueCondition) {
+char* SafeSocket::readData() {
 	char buffer[1024] = { '\0' };
 	int totalBytesCount = 0;
 
 	totalBytesCount = recv(_socket, buffer, sizeof(buffer) - 1, 0);
-
-	if (!continueCondition()) {
-		return nullptr;
-	}
 
 	if (totalBytesCount <= 0) {
 		throw std::exception("Error on read");
@@ -132,10 +119,6 @@ char* SafeSocket::readData(const std::function<bool()> continueCondition) {
 			if (messageBytesLength <= totalBytesCount) {
 				break;
 			}
-		}
-
-		if (!continueCondition()) {
-			return nullptr;
 		}
 
 		int additionalBytesCount = recv(_socket, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount, 0);

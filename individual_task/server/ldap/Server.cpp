@@ -4,20 +4,10 @@
 #include <iostream>
 #include <thread>
 
-Server::Server(int port, int maxClientsCount, int readTimeoutInMilliseconds) 
-	: port(port), serverSocket(SafeSocket(port)), maxClientsCount(maxClientsCount), readTimeoutInMilliseconds(readTimeoutInMilliseconds) { }
+Server::Server(int port, int maxClientsCount) 
+	: port(port), serverSocket(SafeSocket(port)), maxClientsCount(maxClientsCount) { }
 
 void Server::start() {
-	//ObjectClass obj = ObjectClass(posixAccount);
-	//obj.setAttribute(cn, "asd");
-	//obj.setAttribute(uid, "123");
-	//obj.setAttribute(uidNumber, "456");
-	//obj.setAttribute(gidNumber, "789");
-	//obj.setAttribute(homeDirectory, "\\123123\\asd");
-	//if (obj.isReady()) {
-	//	store->addRecord("fix.txt", obj.description());
-	//}
-
 	std::thread clientConnectionThread([this] { this->acceptNewClients(); });
 	clientConnectionThread.detach();
 
@@ -46,12 +36,15 @@ void Server::start() {
 		}
 	}
 
-	closeAllClients();
+	closeServer();
 }
 
-void Server::closeAllClients() {
+void Server::closeServer() {
 	serverSocket.close();
 	closed = true;
+	clientsList.forEach([&](SafeSocket* clientSocket) {
+		clientSocket->close();
+	});
 	while (clientsList.count() != 0) {
 		Sleep(1000);
 	}
@@ -64,7 +57,7 @@ void Server::acceptNewClients() {
 		}
 
 		try {
-			SafeSocket* client = serverSocket.acceptClient(readTimeoutInMilliseconds);
+			SafeSocket* client = serverSocket.acceptClient();
 			clientsList.add(client);
 			std::thread handleClientConnectionThread([this, client] { this->handleClientConnection(client); });
 			handleClientConnectionThread.detach();
@@ -76,18 +69,14 @@ void Server::acceptNewClients() {
 }
 
 void Server::handleClientConnection(SafeSocket* clientSocket) {
-	while (!closed) {
+	while (true) {
 		// Start reading new message
 		char* request;
 		try {
-			request = clientSocket->readData([this]() { return !this->closed; });
+			request = clientSocket->readData();
 		} catch (std::exception const& e) {
 			cleanUpClientConnection(clientSocket);
 			return;
-		}
-
-		if (request == nullptr) {
-			continue;
 		}
 
 		char* response = nullptr;
@@ -154,9 +143,6 @@ void Server::handleClientConnection(SafeSocket* clientSocket) {
 
 		free(responseWithStatus);
 	}
-
-	// Server is finishing -> cleaning up
-	cleanUpClientConnection(clientSocket);
 }
 
 void Server::cleanUpClientConnection(SafeSocket* clientSocket) {
@@ -165,6 +151,7 @@ void Server::cleanUpClientConnection(SafeSocket* clientSocket) {
 }
 
 Server::~Server() {
+	closeServer();
 	clientsList.forEach([](SafeSocket* clientSocket) {
 		delete clientSocket;
 	});

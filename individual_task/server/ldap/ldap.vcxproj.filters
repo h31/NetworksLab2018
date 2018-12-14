@@ -51,9 +51,6 @@
     <ClCompile Include="FileUtil.cpp">
       <Filter>Исходные файлы\util</Filter>
     </ClCompile>
-    <ClCompile Include="ScopeLock.cpp">
-      <Filter>Исходные файлы\util</Filter>
-    </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Исходные файлы\server</Filter>
     </ClCompile>
@@ -70,6 +67,9 @@
       <Filter>Исходные файлы\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\SafeSocket.cpp">
+      <Filter>Исходные файлы\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ScopeLock.cpp">
       <Filter>Исходные файлы\common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -91,9 +91,6 @@
     </ClInclude>
     <ClInclude Include="Server.h">
       <Filter>Файлы заголовков\server</Filter>
-    </ClInclude>
-    <ClInclude Include="ScopeLock.h">
-      <Filter>Файлы заголовков\util</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Файлы заголовков</Filter>

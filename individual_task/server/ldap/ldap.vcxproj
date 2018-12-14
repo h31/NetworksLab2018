@@ -122,11 +122,11 @@
     <ClCompile Include="..\..\common\ObjectClassAttributesFactory.cpp" />
     <ClCompile Include="..\..\common\ObjectClassTypeHelper.cpp" />
     <ClCompile Include="..\..\common\SafeSocket.cpp" />
+    <ClCompile Include="..\..\common\ScopeLock.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DirectoryTreeStore.cpp" />
     <ClCompile Include="DirectoryUtil.cpp" />
-    <ClCompile Include="ScopeLock.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ThreadSafeStoreWrapper.cpp" />
   </ItemGroup>
@@ -135,7 +135,6 @@
     <ClInclude Include="DirectoryUtil.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ScopeLock.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Store.h" />
     <ClInclude Include="ThreadSafeStoreWrapper.h" />

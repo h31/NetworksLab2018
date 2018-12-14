@@ -12,19 +12,18 @@ class Server {
 private:
 	const int port;
 	const int maxClientsCount;
-	const int readTimeoutInMilliseconds;
 	bool closed = false;
 	SafeSocket serverSocket;
 	ThreadSafeLinkedList<SafeSocket*> clientsList;
 	Store* store = new ThreadSafeStoreWrapper(new DirectoryTreeStore());
 
-	void closeAllClients();
+	void closeServer();
 	void acceptNewClients();
 	void handleClientConnection(SafeSocket* clientSocket);
 	void cleanUpClientConnection(SafeSocket* clientSocket);
 
 public:
-	Server(int port, int maxClientsCount, int readTimeoutInMilliseconds);
+	Server(int port, int maxClientsCount);
 	~Server();
 	void start();
 };

@@ -24,7 +24,7 @@ void readServerResponse(SafeSocket& client) {
 
 	try {
 		do {
-			response = client.readData([]() { return true; });
+			response = client.readData();
 		} while (response == nullptr);
 	} catch (std::exception const& e) {
 		_quit(client);
