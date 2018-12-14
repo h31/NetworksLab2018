@@ -2,6 +2,10 @@
 
 #include "common.h"
 
+#include <fstream>
+
+constexpr char* Login_file = "logins.txt";
+
 constexpr int32 Header_length = 16;
 constexpr int32 Name_limit = 64;
 
@@ -20,9 +24,24 @@ struct Mail_user
 class Mail
 {
 public:
-	Mail() {}
+	Mail() 
+	{
+		std::ifstream in(Login_file);
+		std::string line;
+		while (std::getline(in, line))
+		{
+			if (line.size() > 0) get_box(line);
+		}
+	}
 	Mail(const Mail&) = delete;
-	~Mail() {}
+	~Mail() 
+	{
+		std::ofstream out(Login_file);
+		for (auto& box : mail_box_vector)
+		{
+			out << box.owner << "\n";
+		}
+	}
 
 	bool read_message(std::string user, int32 offset, std::string& out)
 	{
@@ -62,6 +81,7 @@ public:
 
 		for (auto& target : target_vector)
 		{
+			if (!has_box(target)) continue;
 			Mail_box& box = get_box(target);
 			box.letters.push_back(letter);
 		}
@@ -98,6 +118,7 @@ public:
 		Mail_user user;
 		user.username = name;
 
+		get_box(name);
 		connections.push_back(std::make_pair(address, user));
 		return true;
 	}
@@ -106,6 +127,15 @@ private:
 	std::string construct_letter(std::string user, std::string message)
 	{
 		return message + "\n\nReceived from " + user;
+	}
+
+	bool has_box(std::string owner)
+	{
+		for (auto& box : mail_box_vector)
+		{
+			if (box.owner == owner) return true;
+		}
+		return false;
 	}
 
 	Mail_box& get_box(std::string owner)
