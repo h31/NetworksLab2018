@@ -7,12 +7,12 @@
 #include <WS2tcpip.h>
 
 SafeSocket::SafeSocket(SOCKET socket, int readTimeoutInMilliseconds) : _socket(socket) {
-	usingTimeout = true;
-	timeval timeout;
-	timeout.tv_sec = readTimeoutInMilliseconds;
-	timeout.tv_usec = 0;
-	// On timeout read returns -1
-	setsockopt(_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+	//usingTimeout = true;
+	//timeval timeout;
+	//timeout.tv_sec = 5;
+	//timeout.tv_usec = 0;
+	//// On timeout read returns -1
+	//setsockopt(_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
 }
 
 SafeSocket::SafeSocket(const char* address, const char* port) {
@@ -109,9 +109,7 @@ char* SafeSocket::readData(const std::function<bool()> continueCondition) {
 	char buffer[1024] = { '\0' };
 	int totalBytesCount = 0;
 
-	do {
-		totalBytesCount = recv(_socket, buffer, sizeof(buffer) - 1, 0);
-	} while (continueCondition() && ((totalBytesCount == -1) && usingTimeout));
+	totalBytesCount = recv(_socket, buffer, sizeof(buffer) - 1, 0);
 
 	if (!continueCondition()) {
 		return nullptr;
@@ -142,9 +140,7 @@ char* SafeSocket::readData(const std::function<bool()> continueCondition) {
 
 		int additionalBytesCount = recv(_socket, buffer + totalBytesCount, sizeof(buffer) - 1 - totalBytesCount, 0);
 
-		if (((totalBytesCount == -1) && usingTimeout)) {
-			continue;
-		} else if (additionalBytesCount <= 0) {
+		if (additionalBytesCount <= 0) {
 			throw std::exception("Error on read");
 		}
 

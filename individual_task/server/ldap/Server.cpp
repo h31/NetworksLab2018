@@ -37,19 +37,12 @@ void Server::start() {
 			int targetID;
 			std::cin >> targetID;
 			int index = 0;
-			SafeSocket* targetSocket = nullptr;
 			clientsList.forEach([&](SafeSocket* clientSocket) {
 				if (targetID == index) {
-					targetSocket = clientSocket;
+					clientSocket->close();
 				}
 				++index;
 			});
-
-			if (targetSocket == nullptr) {
-				continue;
-			}
-
-			cleanUpClientConnection(targetSocket);
 		}
 	}
 
@@ -167,7 +160,6 @@ void Server::handleClientConnection(SafeSocket* clientSocket) {
 }
 
 void Server::cleanUpClientConnection(SafeSocket* clientSocket) {
-	clientSocket->close();
 	clientsList.remove(clientSocket);
 	delete clientSocket;
 }
