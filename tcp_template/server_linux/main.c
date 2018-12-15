@@ -1,3 +1,4 @@
+//server
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     /* First call to socket() function */
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("ERROR opening socket");
         exit(1);
@@ -32,18 +33,18 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
 
-     if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
-    	perror("ERROR on setsockopt");
-    	shutdown(sockfd, 2);
-    	close(sockfd);
+    if(setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), & (int) {1}, sizeof(int)) < 0) {
+        perror("ERROR on setsockopt");
+        shutdown(sockfd, 2);
+        close(sockfd);
     }
 
     /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
     {
         perror("ERROR on binding");
-	shutdown(sockfd, 2);
-    	close(sockfd);
+        shutdown(sockfd, 2);
+        close(sockfd);
         exit(1);
     }
 
@@ -53,8 +54,8 @@ int main(int argc, char *argv[]) {
 
     if(listen(sockfd, 5) < 0)
     {
-	perror("listen");
-	exit(EXIT_FAILURE);
+        perror("listen");
+        exit(EXIT_FAILURE);
     }
 
     puts("Waiting for incoming connections");
@@ -63,29 +64,29 @@ int main(int argc, char *argv[]) {
     while( (newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen)))
     {
 
-	puts("Connection accepted");
+        puts("Connection accepted");
 
-	pthread_t sn_thread;
+        pthread_t sn_thread;
 
-	if( pthread_create( &sn_thread, NULL, connection_handler, &newsockfd) < 0)
-	{
-	    perror("Could not create thread");
-	    return 1;
-	}
+        if( pthread_create( &sn_thread, NULL, connection_handler, &newsockfd) < 0)
+        {
+            perror("Could not create thread");
+            return 1;
+        }
 
-	
-	puts("Handler assigned");
+
+        puts("Handler assigned");
     }
 
     if (sockfd < 0)
     {
-	perror("accept failed");
-	return 1;
+        perror("accept failed");
+        return 1;
     }
 
-    shutdown(sockfd, 2);
-    close(sockfd);
-    exit(0);
+    //shutdown(sockfd, 2);
+    // close(sockfd);
+    // exit(0);
 }
 
 void *connection_handler(void *socket_desc)
@@ -93,27 +94,41 @@ void *connection_handler(void *socket_desc)
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
     char buffer[256];
+    char quit[256]="!wq\n";
+    int new_msg = 0;
     ssize_t n;
+    while(1){
+        bzero(buffer, 256);
+        n = read(sock, buffer, 255);
 
-    bzero(buffer, 256);
-    n = read(sock, buffer, 255);
+        if(strcmp(buffer,quit)==0)
+            break;
 
-    if (n < 0) {
-	perror("ERROR reading from socket");
-	shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
-    }
-    printf("Here is the message: %s\n", buffer);
+        if (n < 0) {
+            perror("ERROR reading from socket");
+            shutdown(sock, 2);
+            close(sock);
+            pthread_exit(1);
+        }
+        if (new_msg == 0)
+        {
+            printf("Here is the message:\n");
+            new_msg=1;
+        }
+        if(strchr(buffer,'\n')!=NULL) {
+            new_msg = 0;
+            n = write(sock, "I got your message", 18);
 
-    /* Write a response to the client */
-    n = write(sock, "I got your message", 18); // send on Windows
+            if (n < 0) {
+                perror("ERROR writing to socket");
+                shutdown(sock, 2);
+                close(sock);
+                pthread_exit(1);
+            }
+        }
+        printf(buffer);
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        shutdown(sock, 2);
-	close(sock);
-	pthread_exit(1);
+
     }
     shutdown(sock, 2);
     close(sock);

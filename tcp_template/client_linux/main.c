@@ -1,3 +1,4 @@
+//client
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -14,7 +15,8 @@ int main(int argc, char *argv[]) {
     struct hostent *server;
 
     char buffer[256];
-
+    char check[256];
+    char quit[256]="!wq\n";
     if (argc < 3) {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
         exit(0);
@@ -51,28 +53,32 @@ int main(int argc, char *argv[]) {
     /* Now ask for a message from the user, this message
        * will be read by server
     */
+    do{
+        printf("Please enter the message: ");
+        do{
+            bzero(buffer, 256);
+            fgets(buffer, 255, stdin);
 
-    printf("Please enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
+            /* Send message to the server */
+            n = write(sockfd, buffer, strlen(buffer));
+            memcpy(check,buffer,256);
+            if (n < 0) {
+                perror("ERROR writing to socket");
+                exit(1);
+            }
 
-    /* Send message to the server */
-    n = write(sockfd, buffer, strlen(buffer));
+            /* Now read server response */
 
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
+        }while(strchr(buffer,'\n')==NULL);
+        bzero(buffer, 256);
+        n = read(sockfd, buffer, 255);
 
-    /* Now read server response */
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
+        if (n < 0) {
+            perror("ERROR reading from socket");
+            exit(1);
+        }
 
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("%s\n", buffer);
+        printf("%s\n", buffer);
+    }while(strcmp(check,quit)!=0);
     return 0;
 }
