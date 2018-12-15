@@ -1,10 +1,10 @@
 #include "common.h"
 
 constexpr const char* Available_commands = "Available commands:\nlogin <name>\nsend <message> <recepients>\nlist\nread <number>\ndelete <number>";
-
-bool construct_command(std::string input, std::string& out)
+// возможные команды на клиенте
+bool construct_command(std::string input, std::string& out) // польз. команды (сообщ. протокола мал. буквами )
 {
-	auto tokens = Split(input, ' ', true, false);
+	auto tokens = Split(input, ' ', true, false); // обработка пробела
 
 	if (tokens.size() == 1)
 	{
@@ -65,13 +65,13 @@ int main(int argc, char* argv[])
 	Server server;
 
 	Address master_address;
-	master_address.hostname = "127.0.0.1";
+	master_address.hostname = "127.0.0.1"; // к чему коннектимся
 	master_address.port = Network_port;
-	server.start(&master_address, nullptr);
+	server.start(&master_address, nullptr); // стартует в режиме клиента (коннектится)
 
 	printf("%s\n", Available_commands);
 	
-	while(server.running())
+	while(server.running()) // пока сервер работает
 	{
 		char buffer[Message_size_limit + 1];
 		
@@ -79,19 +79,19 @@ int main(int argc, char* argv[])
 		if (buffer[0] == 0) break;
 
 		std::string command;
-		if (!construct_command(buffer, command))
+		if (!construct_command(buffer, command)) // если введена неизвестная команда
 		{
 			printf("Incorrect command. %s\n", Available_commands);
 			continue;
 		}
 
-		printf("Now sending: %s\n", buffer);
+		//printf("Now sending: %s\n", buffer);
 
 		server.send(&master_address, command);
 
-		if (!server.running()) break;
+		if (!server.running()) break; // если сервер не работает
 
-		printf("Awaiting response from server...\n");
+		//printf("Awaiting response from server...\n");
 
 		Message message;
 		server.read_server(message);
