@@ -9,6 +9,7 @@ public:
 	char* readAll();
 	void sendAll(const char* buffer);
 	void sendAll(string buffer);
+	void closeSocket();
 protected:
 	int sockfd;	
 	void throwException(string errorMsg);

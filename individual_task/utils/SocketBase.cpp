@@ -19,7 +19,7 @@ char* SocketBase::readAll(){
 	char strLength[4];
 
 	ssize_t n = read(sockfd, strLength, 4);
-	if (n < 0) {
+	if (n <= 0) {
 		throwException("ERROR reading from socket");
 	}
 	int length = atoi(strLength);
@@ -28,7 +28,7 @@ char* SocketBase::readAll(){
 	while(received < length){
 		n = read(sockfd, buffer, length - received);
 		received += n;
-		if (n < 0) {
+		if (n <= 0) {
 			throwException("ERROR reading from socket");
 		}
 	}
@@ -45,7 +45,7 @@ void SocketBase::sendAll(const char* buffer){
 	snprintf(toSend, 4 + BUF_SIZE, "%04lu%s", messageLength, buffer);
 
 	ssize_t n = write(sockfd, toSend, strlen(toSend));
-	if (n < 0) {
+	if (n <= 0) {
 		throwException("ERROR writing to socket");
 	}
 	BOOST_LOG_TRIVIAL(debug) << "End writing";
@@ -56,4 +56,9 @@ void SocketBase::sendAll(string buffer){
     strcpy(cstr, buffer.c_str());
     sendAll(cstr);
     delete [] cstr;
+}
+
+void SocketBase::closeSocket() {
+	shutdown(sockfd, SHUT_RDWR);
+	close(sockfd);
 }

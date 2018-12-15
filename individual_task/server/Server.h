@@ -8,9 +8,12 @@ public:
 	~Server();
 	static void deleteClient(Client* client);
 	static DB* db;
+	void closeAndExit(string errorMsg, int errorCode);
+
+    void printClients();
+    void removeClient(int id);
 private:
 	const int backlog = 5;
 	static vector<Client*> clients;
 	void mainBody();
-	void closeAndExit(string errorMsg, int errorCode);
 };

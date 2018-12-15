@@ -8,6 +8,8 @@ public:
 	int acceptConnection(int sockfd);
 	void handler();
 	bool operator==(const Client& client);
+	const char* getId() { return id; }
+	string getName() { return name; }
 private:
 	struct sockaddr_in cli_addr;
 	string name;
