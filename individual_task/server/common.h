@@ -23,7 +23,7 @@ using int32 = int32_t;
 using uint32 = uint32_t;
 using Socket = int32;
 
-std::vector<std::string> Split(const std::string& s, char seperator, bool handle_quotes = false, bool remove_quotes = false)
+std::vector<std::string> Split(const std::string& s, char seperator, bool handle_quotes = false, bool remove_quotes = false) //обработка кавычек
 {
 	std::vector<std::string> output;
 	output.push_back("");
@@ -80,7 +80,7 @@ std::vector<std::string> Split(const std::string& s, char seperator, bool handle
 }
 
 constexpr int32 Network_port = 5001;
-constexpr int32 Message_size_limit = 1024;
+constexpr int32 Message_size_limit = 1024; //макс. размер письма
 
 struct Message
 {
@@ -88,7 +88,7 @@ struct Message
 	char message[Message_size_limit + 1] = { 0 };
 };
 
-struct Address
+struct Address //hostname, port
 {
 	std::string hostname;
 	int32 port{ 0 };
@@ -125,7 +125,7 @@ public:
 	Server(const Server&) = delete;
 	~Server() {}
 
-	bool start(Address* master_address, Message_processor* processor)
+	bool start(Address* master_address, Message_processor* processor) //сервер ли это? мастер адрес= 0 - сервер; мастер адрес!= 0 -кл.
 	{
 		assert(state == State::None);
 
@@ -165,7 +165,7 @@ public:
 
 		if (is_server)
 		{
-			auto result_bind = bind(socket_server, (sockaddr*)&addr_server, sizeof(addr_server));
+			auto result_bind = bind(socket_server, (sockaddr*)&addr_server, sizeof(addr_server)); //если сервер то биндимся
 			if (result_bind < 0)
 			{
 				printf("Failed to bind server socket");
@@ -176,7 +176,7 @@ public:
 		else
 		{
 			auto connect_result =
-				connect(socket_server, (sockaddr*)&addr_server, sizeof(addr_server));
+				connect(socket_server, (sockaddr*)&addr_server, sizeof(addr_server)); // если клиент, то коннектимся
 			if (connect_result < 0)
 			{
 				printf("Failed to connect to master server");
@@ -188,11 +188,11 @@ public:
 
 		if (is_server)
 		{
-			printf("Server started on %s\n", address_server.to_string().c_str());
+			printf("Server started on %s\n", address_server.to_string().c_str()); //если сервер
 		}
 		else
 		{
-			printf("Connected to server %s\n", master_address->to_string().c_str());
+			printf("Connected to server %s\n", master_address->to_string().c_str()); // если клиент
 		}
 
 		state = State::Started;
@@ -200,9 +200,9 @@ public:
 		return true;
 	}
 
-	bool running() const { return state == State::Started; }
+	bool running() const { return state == State::Started; }     // проверка работы сервера
 
-	void terminate()
+	void terminate() // выход
 	{
 		if (state == State::Started)
 		{
@@ -214,7 +214,7 @@ public:
 		}
 	}
 
-	void accept_thread()
+	void accept_thread() // поток для сервера
 	{
 		assert(state == State::Started);
 
@@ -234,7 +234,7 @@ public:
 			}
 
 			{
-				std::lock_guard<std::mutex> _(shared.mutex);
+				std::lock_guard<std::mutex> _(shared.mutex); //мютекс (добавление кл. по очереди)
 
 				char buffer[64] = { 0 };
 				Address address;
@@ -282,7 +282,7 @@ public:
 		return ok;
 	}
 
-	std::string get_clients()
+	std::string get_clients() // в сервере (когда новый клиент подключается)
 	{
 		std::string result;
 		{
@@ -297,7 +297,7 @@ public:
 		return result;
 	}
 
-	bool kick_client(int32 slot)
+	bool kick_client(int32 slot) // откл. клиента от сервера
 	{
 		{
 			std::lock_guard<std::mutex> _(shared.mutex);
@@ -317,16 +317,16 @@ public:
 		return false;
 	}
 
-	bool read_server(Message& out_message)
+	bool read_server(Message& out_message) // чтение сервера, использ. только клиент
 	{
 		out_message.length = 0;
-		int32 n = readn(socket_server, (char*)&out_message.length, sizeof(out_message.length), sizeof(int32));
-		if (out_message.length <= 0)
+		int32 n = readn(socket_server, (char*)&out_message.length, sizeof(out_message.length), sizeof(int32)); // какой длины сообщение (контроль конца сообщения)
+		if (out_message.length <= 0) // пустое сообщение
 		{
-			printf("Incorrect message length\n");
+			printf("Incorrect message length\n"); 
 			n = -1;
 		}
-		if (out_message.length > Message_size_limit)
+		if (out_message.length > Message_size_limit) // слишком большое сообщение
 		{
 			printf("Attempt to overflow buffer\n");
 			n = -1;
@@ -356,40 +356,40 @@ private:
 
 
 
-	bool send(Socket socket, std::string in_message)
+	bool send(Socket socket, std::string in_message) // отправить на опред. сокет сообщение
 	{
 		Message message;
-		message.length = in_message.size();
+		message.length = in_message.size(); // подготавливает пакет с длинной сообщения
 		bcopy(in_message.c_str(), message.message, message.length);
-		int32 n = write(socket, (char*)&message, sizeof(int32) + message.length);
+		int32 n = write(socket, (char*)&message, sizeof(int32) + message.length); // само сообщение
 
 		return n >= 0;
 	}
 
-	void listen_thread(int32 offset)
+	void listen_thread(int32 offset) // на сервере, создается читающий поток
 	{
 		Socket socket = shared.sockets[offset];
 		std::string client_name = std::string("#" + std::to_string(offset));
 
-		while (!terminated)
+		while (!terminated) // если не выкл.
 		{
 			int32 length{ 0 };
 			int32 n = readn(socket, (char*)&length, sizeof(length), sizeof(int32));
 			if (length > Message_size_limit)
 			{
-				printf("Attempt to overflow buffer\n");
+				printf("Attempt to overflow buffer\n"); // переполнение буфера
 				n = -1;
 			}
 			if (n <= 0) break;
 
-			printf("Message of length %s incoming, reading\n", std::to_string(length).c_str());
+			printf("Message of length %s incoming, reading\n", std::to_string(length).c_str()); // длинна пришедшего сообщения
 
 			Message message;
 			message.length = length;
 			n = readn(socket, message.message, sizeof(message.message), length);
 			if (n <= 0) break;
 
-			printf("Received from client %s: %s\n", client_name.c_str(), message.message);
+			printf("Received from client %s: %s\n", client_name.c_str(), message.message); // команда, пришедшая на сервер
 
 			Address address;
 			{
@@ -412,7 +412,7 @@ private:
 		return;
 	}
 
-	int32 readn(Socket socket, char* buf, int32 buflen, int32 count)
+	int32 readn(Socket socket, char* buf, int32 buflen, int32 count)  // считывает н байтов,пока не считает всё сообщение
 	{
 		bzero(buf, buflen);
 		int32 n{ 0 };
@@ -422,7 +422,7 @@ private:
 			int32 read_count = read(socket, buf + n, count - n);
 			if (read_count == 0)
 			{
-				printf("Connection terminated by remote user\n");
+				printf("Connection terminated by remote user\n"); // при отключении клиента
 				return -1;
 			}
 			else if (read_count < 0)
