@@ -2,17 +2,17 @@
 
 #include <fstream>
 
-constexpr char* Login_file = "logins.txt";
+constexpr char* Login_file = "logins.txt"; // файл для хранения логинов
 
-constexpr int32 Header_length = 16;
-constexpr int32 Name_limit = 64;
+constexpr int32 Header_length = 16; // макс. длинна для предпросмотр. сообщения
+constexpr int32 Name_limit = 64; // макс. длинна имени
 
-constexpr const char* Available_commands = "Available commands:\nlist\nkick <slot>\nexit";
+constexpr const char* Available_commands = "Available commands:\nlist\nkick <slot>\nexit"; // доступные команды на сервере
 
-struct Mail_box
+struct Mail_box // почт. ящик
 {
-	std::string owner;
-	std::vector<std::string> letters;
+	std::string owner; // владелец
+	std::vector<std::string> letters; // список писем
 };
 
 struct Mail_user
@@ -20,12 +20,12 @@ struct Mail_user
 	std::string username;
 };
 
-class Mail
+class Mail // функционал почты
 {
 public:
 	Mail()
 	{
-		std::ifstream in(Login_file);
+		std::ifstream in(Login_file); // ввод в файл 
 		std::string line;
 		while (std::getline(in, line))
 		{
@@ -35,35 +35,35 @@ public:
 	Mail(const Mail&) = delete;
 	~Mail()
 	{
-		std::ofstream out(Login_file);
+		std::ofstream out(Login_file); // вывод из файла
 		for (auto& box : mail_box_vector)
 		{
 			out << box.owner << "\n";
 		}
 	}
 
-	bool read_message(std::string user, int32 offset, std::string& out)
+	bool read_message(std::string user, int32 offset, std::string& out) // счиатать почту такого юзера, под таким номером
 	{
-		Mail_box& box = get_box(user);
+		Mail_box& box = get_box(user); // созд. ящик
 
-		if (offset < 0 || offset >= box.letters.size()) return false;
+		if (offset < 0 || offset >= box.letters.size()) return false; // если номер
 
 		out = box.letters[offset];
 		return true;
 	}
 
-	std::string list_messages(std::string user)
+	std::string list_messages(std::string user) // список писем пользователя
 	{
 		std::string result = "Current messages for " + user + ":\n";
 
-		Mail_box& box = get_box(user);
+		Mail_box& box = get_box(user); // созд. ящик
 
-		for (int32 i = 0, size = box.letters.size(); i != size; ++i)
+		for (int32 i = 0, size = box.letters.size(); i != size; ++i) // пред. просмотр
 		{
 			std::string message = box.letters[i];
-			int32 header_length = std::min((int32)message.size(), Header_length);
+			int32 header_length = std::min((int32)message.size(), Header_length); // 16 симв. или меньше
 			std::string header = message.substr(0, header_length);
-			std::replace(header.begin(), header.end(), '\n', ' ');
+			std::replace(header.begin(), header.end(), '\n', ' '); // заменяем перенос пробелом
 			if (i != 0) result += "\n";
 			result += std::to_string(i) + ": " + header;
 		}
@@ -71,11 +71,11 @@ public:
 		return result;
 	}
 
-	bool send_message(std::string user, std::string message, std::string targets)
+	bool send_message(std::string user, std::string message, std::string targets) // отправить писмо от этого юзера, с таким сообщением
 	{
 		std::string letter = construct_letter(user, message);
 
-		auto target_vector = Split(targets, ';', true, true);
+		auto target_vector = Split(targets, ';', true, true); // если неск. - получатели через ;
 		if (target_vector.size() == 0) return false;
 
 		for (auto& target : target_vector)
@@ -87,19 +87,19 @@ public:
 		return true;
 	}
 
-	bool delete_message(std::string user, int32 offset)
+	bool delete_message(std::string user, int32 offset) // юзера, под таким номером
 	{
 		Mail_box& box = get_box(user);
 
 		if (offset < 0 || offset >= box.letters.size()) return false;
 
-		box.letters.erase(box.letters.begin() + offset);
+		box.letters.erase(box.letters.begin() + offset); // стерает
 		return true;
 	}
 
-	bool get_user(Address address, std::string& out)
+	bool get_user(Address address, std::string& out) // hostname, port
 	{
-		for (auto& pair : connections)
+		for (auto& pair : connections) // какому юзеру принадлежит ip адрес
 		{
 			if (pair.first == address)
 			{
@@ -110,15 +110,15 @@ public:
 		return false;
 	}
 
-	bool login(Address address, std::string name)
+	bool login(Address address, std::string name) // привяз. ip адрес с портом к какому то имени
 	{
 		if (get_user(address, name)) return false; // socket already connected
 
 		Mail_user user;
-		user.username = name;
+		user.username = name; // создать юзера
 		
 		get_box(name);
-		connections.push_back(std::make_pair(address, user));
+		connections.push_back(std::make_pair(address, user)); // добавл. в список соединений
 		return true;
 	}
 
@@ -153,23 +153,23 @@ private:
 	std::vector<std::pair<Address, Mail_user>> connections;
 };
 
-void master(Server& server)
+void master(Server& server) // команды на сервере
 {
 	while (server.running())
 	{
 		std::string command;
 		std::getline(std::cin, command);
 
-		if (command == "help")
+		if (command == "help") // выводит все команды
 		{
 			printf("%s\n", Available_commands);
 		}
-		else if (command == "list")
+		else if (command == "list") // список соединений
 		{
 			std::string list = server.get_clients();
 			printf("Current connections:\n%s", list.c_str());
 		}
-		else if (command.find("kick") != std::string::npos)
+		else if (command.find("kick") != std::string::npos) //откл. соед.
 		{
 			int32 number = std::stoi(command.substr(5, command.size() - 5));
 			bool kicked = server.kick_client(number);
@@ -178,7 +178,7 @@ void master(Server& server)
 				printf("Could not terminate connection\n");
 			}
 		}
-		else if (command == "exit")
+		else if (command == "exit") //выход
 		{
 			server.terminate();
 		}
@@ -200,11 +200,11 @@ public:
 
 	void process(std::string message, Address from) override
 	{
-		auto tokens = Split(message, ' ', true, true);
+		auto tokens = Split(message, ' ', true, true); // работа с пробелом
 
 		std::string name;
 		bool logged = mail.get_user(from, name);
-		if (tokens.size() == 2)
+		if (tokens.size() == 2) // токены
 		{
 			auto first = tokens[0];
 			auto second = tokens[1];
@@ -220,7 +220,7 @@ public:
 
 				if (logged)
 				{
-					server.send(&from, "Already logged in as: " + name);
+					server.send(&from, "Already logged in as: " + name); // повторный логин
 					return;
 				}
 
@@ -238,7 +238,7 @@ public:
 
 		if (!logged)
 		{
-			server.send(&from, "Please log in");
+			server.send(&from, "Please log in"); // если первоначально не залогинелся
 			return;
 		}
 
@@ -262,7 +262,7 @@ public:
 				std::string message;
 				if (!mail.read_message(name, std::stoi(second), message))
 				{
-					server.send(&from, "Letter not found");
+					server.send(&from, "Letter not found"); // чтение несущ. сообщения
 					return;
 				}
 
@@ -273,7 +273,7 @@ public:
 			{
 				if (!mail.delete_message(name, std::stoi(second)))
 				{
-					server.send(&from, "Letter not found");
+					server.send(&from, "Letter not found"); // удаление несущ. сообщения
 					return;
 				}
 
@@ -314,13 +314,13 @@ int main(int argc, char* argv[])
 	setbuf(stdout, NULL);
 
 
-	Mail mail;
-	Server server;
+	Mail mail; // созд. почту
+	Server server; //созд. сервер
 	Mail_processor processor{ server, mail };
-	server.start(nullptr, &processor);
+	server.start(nullptr, &processor); // мы сервер и к нам коннектятся
 
 
-	std::thread accept_thread([&] {server.accept_thread(); });
+	std::thread accept_thread([&] {server.accept_thread(); }); // обработчик сообщений пришедших на сервер
 	std::thread master_thread([&] {master(server); });
 	printf("%s\n", Available_commands);
 
