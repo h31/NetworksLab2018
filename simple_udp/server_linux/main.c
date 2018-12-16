@@ -50,7 +50,6 @@ int main(int argc, char *argv[]) {
                 perror("ERROR send");
                 exit(1);
             }
-            buffer[n] = '\0';
             printf("Here is the message: %s\n", buffer);
             memset(buffer ,'\0', 256);
             buffer[received_size] = '\0';
