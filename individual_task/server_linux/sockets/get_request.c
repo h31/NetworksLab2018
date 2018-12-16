@@ -21,7 +21,7 @@ int get_request(int sockfd, struct request* req)
     }
 
     message_length = *(int*)buf;
-    if (message_length <= 0 || message_length > 256) {
+    if (message_length <= 0 || message_length > 65536) {
         return REQUEST_LENGTH_ERROR;
     }
 
