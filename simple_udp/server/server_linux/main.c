@@ -8,9 +8,9 @@
 
 struct information 
 {
-	int sockfd;
-	unsigned int clilen;
-	struct sockaddr_in cli_addr; 
+    int sockfd;
+    unsigned int clilen;
+    struct sockaddr_in cli_addr;
 };
 void *connection_handler(void *c);
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     ssize_t n;
-    struct information sct; 
+    struct information sct;
     pthread_t thread_num;
 
     /* First call to socket() function */
@@ -41,11 +41,11 @@ int main(int argc, char *argv[]) {
     
 
     /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
     {
         perror("ERROR on binding");
-	shutdown(sockfd, SHUT_RDWR); 
-	close(sockfd);
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
         exit(1);
     }
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
        * go in sleep mode and will wait for the incoming connection
     */
 
-    //listen(sockfd, 5);
+
     clilen = sizeof(cli_addr);
     sct.clilen = clilen;
     sct.sockfd = sockfd;
@@ -62,63 +62,61 @@ int main(int argc, char *argv[]) {
 
     if((create_error = pthread_create(&thread_num , NULL , connection_handler , &sct)) != 0)
     {
-    	perror("could not create thread");
-	shutdown(sockfd, SHUT_RDWR); 
-	close(sockfd); 
-	exit(1); 
+        perror("could not create thread");
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
+        exit(1);
     }
-    while(1) 
-    { 
+    while(1)
+    {
     }
 }
 
 void *connection_handler(void *c)
 {
     //Get the socket descriptor
-    //int sockt = *(int*)sockfd;
     int r_size,n;
     char *new_message , buffer[256];
-    struct information sct = * (struct information *) c; 
-  
+    struct information sct = * (struct information *) c;
+
     //Receive a message from client
     while(1)
     {
-	if ((r_size = recvfrom(sct.sockfd , buffer , 256 , 0, (struct sockaddr *) &sct.cli_addr, &sct.clilen)) == -1)
-	{
-        	perror("ERROR reading from socket");
-		shutdown(sct.sockfd, SHUT_RDWR); 
-		close(sct.sockfd);
-		pthread_exit(NULL);
-        	exit(1);
-    	}
+        if ((r_size = recvfrom(sct.sockfd , buffer , 256 , 0, (struct sockaddr *) &sct.cli_addr, &sct.clilen)) == -1)
+        {
+            perror("ERROR reading from socket");
+            shutdown(sct.sockfd, SHUT_RDWR);
+            close(sct.sockfd);
+            pthread_exit(NULL);
+            exit(1);
+        }
 
-    	printf("Here is the message: %s\n", buffer);
+        printf("Here is the message: %s\n", buffer);
 
-    	/* Write a response to the client */
-	
+        /* Write a response to the client */
+
 
         //end of string marker
-	buffer[r_size] = '\0';
-		
-	//Send the message back to client
-	//n=write(sockt, "I got your message", 18); // send on Windows
-	if((n = sendto(sct.sockfd, buffer, r_size, 0, (struct sockaddr*) &sct.cli_addr, sct.clilen)) == -1)
-	{
-        	perror("ERROR sending to socket");
-		shutdown(sct.sockfd, SHUT_RDWR); 
-		close(sct.sockfd);
-		pthread_exit(NULL);
-        	exit(1);
-    	}
-	
-		
-	//clear the message buffer
-	memset(buffer, 0, 256);
-	
+        buffer[r_size] = '\0';
+
+        //Send the message back to client
+        if((n = sendto(sct.sockfd, buffer, r_size, 0, (struct sockaddr*) &sct.cli_addr, sct.clilen)) == -1)
+        {
+            perror("ERROR sending to socket");
+            shutdown(sct.sockfd, SHUT_RDWR);
+            close(sct.sockfd);
+            pthread_exit(NULL);
+            exit(1);
+        }
+
+
+        //clear the message buffer
+        memset(buffer, 0, 256);
+
     }
 
-        shutdown(sct.sockfd, SHUT_RDWR);
-    	close(sct.sockfd);
-	pthread_exit(NULL);
-    	return 0;
+    shutdown(sct.sockfd, SHUT_RDWR);
+    close(sct.sockfd);
+    pthread_exit(NULL);
+    return 0;
 } 

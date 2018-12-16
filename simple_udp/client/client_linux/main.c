@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     char buffer[256];
 
-    if (argc < 3) 
+    if (argc < 3)
     {
         fprintf(stderr, "usage %s hostname port\n", argv[0]);
         exit(0);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     /* Create a socket point */
     sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    if (sockfd == -1) 
+    if (sockfd == -1)
     {
         perror("ERROR opening socket");
         exit(1);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     server = gethostbyname(argv[1]);
 
-    if (server == NULL) 
+    if (server == NULL)
     {
         fprintf(stderr, "ERROR, no such host\n");
         exit(0);
@@ -53,34 +53,28 @@ int main(int argc, char *argv[]) {
     */
     while(1)
     {
-    	printf("Please enter the message: ");
-    	bzero(buffer, 256);
-	fgets(buffer, 255, stdin); 
+        printf("Please enter the message: ");
+        bzero(buffer, 256);
+        fgets(buffer, 255, stdin);
 
         /* Send message to the server */
-    	n = sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, salen);
+        n = sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, salen);
 
-    	if (n == -1) 
-	{
-        	perror("ERROR writing to socket");
-        	exit(1);
+        if (n == -1)
+        {
+            perror("ERROR writing to socket");
+            exit(1);
         }
 
-    	/* Now read server response */
-   	bzero(buffer, 256);
-    	/*n = read(sockfd, buffer, 255); from TCP
-	if (n < 0) {
-        perror("ERROR reading from socket");   from TCP
-        exit(1);
-   	 }
-   	*/
+        /* Now read server response */
+        bzero(buffer, 256);
 
-    	n = recvfrom(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, &salen);
+        n = recvfrom(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *) &serv_addr, &salen);
 
-    	if (n == -1) 
+        if (n == -1)
         {
-	perror("ERROR accepting data from socket");
-	exit(1);
+            perror("ERROR accepting data from socket");
+            exit(1);
         }
 
         printf("%s\n", buffer);
