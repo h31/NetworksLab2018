@@ -4,7 +4,7 @@
 
 #include "socket.h"
 
-int response(int sockfd, struct response* resp)
+int response(int sockfd, struct response* resp, struct sockaddr_in * serv_addr)
 {
     int res; // Result of reading
     char* buf; // Buffer for reqding
@@ -15,7 +15,7 @@ int response(int sockfd, struct response* resp)
 
     // Get length of request
     buf = (char*)malloc(sizeof(int));
-    res = read_socket(sockfd, buf, sizeof(int));
+    res = read_socket(sockfd, buf, sizeof(int), serv_addr);
     // Throw errors
     if (res != WORKING_SOCKET) {
         return res;
@@ -34,7 +34,7 @@ int response(int sockfd, struct response* resp)
     buf = (char*)malloc(message_length * sizeof(char));
     bzero(buf, message_length * sizeof(char));
 
-    res = read_socket(sockfd, buf, message_length);
+    res = read_socket(sockfd, buf, message_length, serv_addr);
 
     // Throw errors
     if (res != WORKING_SOCKET) {

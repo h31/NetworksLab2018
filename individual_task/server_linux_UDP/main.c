@@ -7,9 +7,7 @@
 char* filename = "server_data.txt";
 char buff[BUFSIZE];
 struct prime_numbers data;
-
-// Function for messaging with client
-void* client_func(void* arg);
+struct sockaddr_in cli_addr;
 
 // Request handlers
 void reg_request_handler(int sockfd, struct request req);
@@ -32,12 +30,12 @@ int check_arguments(int sockfd, struct request req);
 // Function for checking if request token is NULL
 int check_token(int sockfd, struct request req);
 
-int main()
-{
+int main() {
 
-    int sockfd, newsockfd; // Socket for listening
-    struct sockaddr_in cli_addr;
+    int sockfd; // Socket for listening
     unsigned int clilen;
+    struct request req; // Request from client
+    int res;
 
     bzero(buff, BUFSIZE);
 
@@ -53,40 +51,11 @@ int main()
     sockfd = listen_socket();
 
     clilen = sizeof(cli_addr);
+    memset((char *) &cli_addr, 0, clilen);
 
-    while ((newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen))) {
+    for (;;) {
 
-        // Making new thread for messaging with client
-        pthread_t client_thread; // Thread for messaging
-
-        if (pthread_create(&client_thread, NULL, client_func,
-                           &newsockfd) < 0) {
-            close_socket(newsockfd, "Error while creating client thread");
-            return 1;
-        }
-        pthread_detach(client_thread);
-    }
-
-    if (sockfd < 0){
-        perror("Accept failed");
-        return 1;
-    }
-
-    close_socket(sockfd, "Good Job!");
-
-    sleep(1);
-    return 0;
-}
-
-void* client_func(void* arg)
-{
-    int sockfd = *(int*)arg; // Client socket
-    struct request req; // Request from client
-    int res;
-
-    for(;;) {
-
-        res = get_request(sockfd, &req);
+        res = get_request(sockfd, &req, &cli_addr);
         // Handle errors
         if (handle_errors(sockfd, res))
             continue;
@@ -110,12 +79,11 @@ void* client_func(void* arg)
             clear_request_handler(sockfd, req);
         } else if (strcmp(req.comm.type, "QUIT") == 0) {
             quit_request_handler(sockfd, req);
-            close_socket(sockfd, "Client is out");
-            pthread_exit(0);
         } else {
             send_response(sockfd, RESPONSE_ERROR, "Unknown type of request");
         }
     }
+
 }
 
 // Function for handling reg request
@@ -266,7 +234,7 @@ void calc_request_handler(int sockfd, struct request req)
 
     check_range(&data, buff);
 
-    int res = send(sockfd, buff, sizeof(buff), NULL);
+    int res = sendto(sockfd, buff, sizeof(buff), 0, (struct sockaddr *) &cli_addr, sizeof(cli_addr));
     if (handle_errors(sockfd, res))
         return;
 
@@ -274,12 +242,12 @@ void calc_request_handler(int sockfd, struct request req)
     char calc_range[10] = {0};
     sprintf(calc_range, "%d", data.current_range);
 
-    res = send(sockfd, calc_range, sizeof(calc_range), NULL);
+    res = sendto(sockfd, calc_range, sizeof(calc_range), 0, (struct sockaddr *) &cli_addr, sizeof(cli_addr));
     if (handle_errors(sockfd, res))
         return;
 
     char read_data[BUFSIZE] = {0};
-    res = read_socket(sockfd, read_data, sizeof(read_data));
+    res = read_socket(sockfd, read_data, sizeof(read_data), &cli_addr);
     if (handle_errors(sockfd, res))
         return;
 
@@ -425,7 +393,7 @@ int check_token(int sockfd, struct request req)
 void send_response(int sockfd, char* type, char* payload)
 {
     int res;
-    res = response_request(sockfd, type, payload);
+    res = response_request(sockfd, type, payload, &cli_addr);
     if (res == WRITING_ERROR) {
         close_socket(sockfd, "ERROR writing to socket");
         pthread_exit(0);

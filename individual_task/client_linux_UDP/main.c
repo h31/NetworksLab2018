@@ -3,8 +3,9 @@
 
 #define BUFSIZE 8192
 
-int main(int argc, char* argv[])
+int main()
 {
+    struct sockaddr_in serv_addr;
     int serv_data[1000];
     struct request req; // Request to server
     struct response resp; // Response from server
@@ -29,7 +30,7 @@ int main(int argc, char* argv[])
     bzero(send_data, BUFSIZE);
 
     // Connect to server
-    sockfd = connect_socket(argc, argv);
+    sockfd = connect_socket(&serv_addr);
     if (sockfd < 0) {
         exit(1);
     }
@@ -73,20 +74,20 @@ int main(int argc, char* argv[])
         req.token = token;
 
         // Send request
-        res = send_request(sockfd, &req);
+        res = send_request(sockfd, &req, &serv_addr);
         if (res < 0) {
             break;
         }
 
         if (strcmp(req.comm.type, "CALC") == 0){
-            res = read_socket(sockfd, mes_buf, BUFSIZE);
+            res = read_socket(sockfd, mes_buf, BUFSIZE, &serv_addr);
             if (res < 0) {
                 break;
             }
             strcat(mes_buf, "\n");
             printf(mes_buf);
 
-            res = read_socket(sockfd, size, 10);
+            res = read_socket(sockfd, size, 10, &serv_addr);
             if (res < 0) {
                 break;
             }
@@ -97,7 +98,7 @@ int main(int argc, char* argv[])
             }
 
             pack_data(serv_data, 1000, send_data);
-            res = send(sockfd, send_data, sizeof(send_data), NULL);
+            res = sendto(sockfd, send_data, sizeof(send_data), MSG_CONFIRM, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
             if (res < 0) {
                 break;
             }
@@ -106,7 +107,7 @@ int main(int argc, char* argv[])
         }
 
         // Read response
-        res = response(sockfd, &resp);
+        res = response(sockfd, &resp, &serv_addr);
         if (res < 0) {
             break;
         }

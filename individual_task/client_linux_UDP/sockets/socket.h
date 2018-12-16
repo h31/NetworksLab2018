@@ -3,11 +3,13 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <string.h>
 
 #define WORKING_SOCKET 0
 #define INVALID_REQUEST 400
@@ -41,19 +43,19 @@ struct response {
 };
 
 // Function for connecting to server
-int connect_socket(int argc, char** argv);
+int connect_socket(struct sockaddr_in* serv_addr);
 
 // Close socket for read and write and print message
 void close_socket(int sockfd, char* msg);
 
 // Wrap request into byte array and send to client
-int send_request(int sockfd, struct request* req);
+int send_request(int sockfd, struct request* req, struct sockaddr_in * serv_addr);
 
 // Create request from string str
 int parse_request(char* str, struct request* req);
 
 // Get response from server
-int response(int sockfd, struct response* resp);
+int response(int sockfd, struct response* resp, struct sockaddr_in * serv_addr);
 
 // Read from socket
-int read_socket(int sockfd, char* buffer, int length);
+int read_socket(int sockfd, char* buffer, int length, struct sockaddr_in * serv_addr);

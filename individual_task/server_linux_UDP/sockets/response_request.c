@@ -3,7 +3,7 @@
 //
 #include "socket.h"
 
-int response_request(int sockfd, char* type, char* payload)
+int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr)
 {
     int type_length; // Length of response type
     int payload_length; // Length of payload type
@@ -23,7 +23,7 @@ int response_request(int sockfd, char* type, char* payload)
     length = sizeof(int) * 2 + (type_length + payload_length) * sizeof(char);
 
     // Send length to client
-    res = send(sockfd, &length, sizeof(int), NULL);
+    res = sendto(sockfd, &length, sizeof(int), 0, cli_addr, sizeof(*cli_addr));
     if (res < 0) {
         return WRITING_ERROR;
     }
@@ -49,7 +49,7 @@ int response_request(int sockfd, char* type, char* payload)
     buf_pointer += payload_length * sizeof(char);
 
     // Send response to client
-    res = send(sockfd, buf, length, NULL);
+    res = sendto(sockfd, buf, length, 0, cli_addr, sizeof(*cli_addr));
     free(buf);
 
     if (res < 0) {

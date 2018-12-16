@@ -40,11 +40,11 @@ int listen_socket();
 void close_socket(int sockfd, char* msg);
 
 // Get request from client
-int get_request(int sockfd, struct request* req);
+int get_request(int sockfd, struct request* req, struct sockaddr_in * cli_addr);
 
 // Read data from socket
-int read_socket(int sockfd, char* buffer, int length);
+int read_socket(int sockfd, char* buffer, int length, struct sockaddr_in * cli_addr);
 
 // Send responce to client
 // Wrap response to byte array and write it to socket
-int response_request(int sockfd, char* type, char* payload);
+int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr);

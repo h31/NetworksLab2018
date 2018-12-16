@@ -4,7 +4,7 @@
 
 #include "socket.h"
 
-int send_request(int sockfd, struct request* req)
+int send_request(int sockfd, struct request* req, struct sockaddr_in * serv_addr)
 {
     int type_length; // Length of request type
     int arg1_length; // Length of first argument of command
@@ -43,8 +43,8 @@ int send_request(int sockfd, struct request* req)
     length = sizeof(int) * 3 + (type_length + arg1_length + arg2_length + token_length) * sizeof(char);
 
     // Send length to server
-    res = send(sockfd, &length, sizeof(int), NULL);
-    if (res < 0) {
+    res = sendto(sockfd, &length, sizeof(int), 0, serv_addr, sizeof(*serv_addr));
+    if (res == -1) {
         close_socket(sockfd, "ERROR write length to socket");
         return -1;
     }
@@ -85,8 +85,8 @@ int send_request(int sockfd, struct request* req)
     bcopy(req->token, &buf[buf_pointer], token_length * sizeof(char));
 
     // Send request to server
-    res = send(sockfd, buf, length, NULL);
-    if (res < 0) {
+    res = sendto(sockfd, buf, length, MSG_CONFIRM, serv_addr, sizeof(*serv_addr));
+    if (res == -1) {
         close_socket(sockfd, "ERROR write request to socket");
         return -1;
     }

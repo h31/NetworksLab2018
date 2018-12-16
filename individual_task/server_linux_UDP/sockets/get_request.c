@@ -3,7 +3,7 @@
 //
 #include "socket.h"
 
-int get_request(int sockfd, struct request* req)
+int get_request(int sockfd, struct request* req, struct sockaddr_in * cli_addr)
 {
     int readRes; // Result of reading
     char* buf; // Buffer for reading
@@ -14,14 +14,14 @@ int get_request(int sockfd, struct request* req)
 
     // Get length of request
     buf = (char*)malloc(sizeof(int));
-    readRes = read_socket(sockfd, buf, sizeof(int));
+    readRes = read_socket(sockfd, buf, sizeof(int), cli_addr);
 
     if (readRes != WORKING_SOCKET) {
         return readRes;
     }
 
     message_length = *(int*)buf;
-    if (message_length <= 0 || message_length > 256) {
+    if (message_length <= 0 || message_length > 65536) {
         return REQUEST_LENGTH_ERROR;
     }
 
@@ -31,7 +31,7 @@ int get_request(int sockfd, struct request* req)
     // Read byte array of request
     buf = (char*)malloc(message_length * sizeof(char));
 
-    readRes = read_socket(sockfd, buf, message_length);
+    readRes = read_socket(sockfd, buf, message_length, cli_addr);
 
     if (readRes != WORKING_SOCKET) {
         return readRes;
