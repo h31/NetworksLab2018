@@ -59,13 +59,13 @@ int main(int argc, char* argv[])
 
         // Send request
         res = send_request(sockfd, &req);
-        if (res < 0) {
+        if (res != 0) {
             break;
         }
 
         // Read response
         res = get_response(sockfd, &resp);
-        if (res < 0) {
+        if (res != 0) {
             break;
         }
 
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
         if (strcmp(resp.type, RESPONSE_DELETED) == 0) {
             bzero(token, 50);
-            printf("Session is over\n");
+            printf("Session is over. Server response:%s\n", resp.payload);
             strcpy(login, "not-logged");
         }
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
-
+    printf("Now close socket\n");
     close_socket(sockfd, "no errors");
     return 0;
 }

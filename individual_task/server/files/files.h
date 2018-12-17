@@ -29,6 +29,9 @@ int write_to_file(char* filename, char* buf, int length);
 // List all created accounts, length = max length of list_out
 void list_all_accounts(char* list_out, int length);
 
+// List all created tokens, length = max length of list_out
+void list_all_sessions(char* list_out, int length);
+
 // Account functions
 // Create account with login and password
 int create_account(char* login, char* password);

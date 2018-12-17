@@ -95,12 +95,12 @@ int send_request(int sockfd, struct request* req)
 	}
 
     // Send request to server
-    res = write(sockfd, buf, length + sizeof(int));
+    res = write(sockfd, buf, length+sizeof(int));
     if (res < 0) {
         close_socket(sockfd, "ERROR write request to socket");
         return -1;
     }
-    printf("I send %d/%d bytes\n", res, length);
+    printf("I send %d/%d bytes\n", res, length+sizeof(int));
 
     return OK;
 }

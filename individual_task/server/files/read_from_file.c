@@ -9,6 +9,7 @@ int read_from_file(char* filename, char* buf, int length)
     file = fopen(filename, "r");
     if (file == NULL) {
         mlogf("ERROR on opening file with name=%s", filename);
+        perror("error?");
         return ERROR;
     }
 

@@ -14,7 +14,7 @@ int read_from(int sockfd, char* buffer, int length)
         }
         if (n == 0) {
             if (read_length > 0) {
-                printf("Reading is not finisher. %d/%d bytes was read",
+                printf("Reading is not finished. %d/%d bytes was read\n",
                     length - read_length, length);
                 return READING_IS_NOT_FINISHED;
             }

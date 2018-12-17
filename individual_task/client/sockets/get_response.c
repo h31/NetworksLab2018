@@ -12,6 +12,7 @@ int get_response(int sockfd, struct response* resp)
     // Get length of request
     buf = (char*)malloc(sizeof(int));
     res = read_from(sockfd, buf, sizeof(int));
+    printf("Length is received\n");
     // Throw errors
     if (res != OK) {
         return res;

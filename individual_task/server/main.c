@@ -40,7 +40,8 @@ int main()
     pthread_t listen_thread; // Thread for listening
     int listen_socket; // Socket for listening
     int res; // Result of functions
-    char key; // Key pressed
+    //char key; // Key pressed
+    char input_buf[256]; // Input buffer
 
     log_init("server.log");
     init_data_folders(); // Create data folders
@@ -55,19 +56,61 @@ int main()
         close_socket(listen_socket, "ERROR while creating listen thread");
     }
 
-    while (key != 'q') {
-        key = getchar();
-        switch (key) {
+    while (1) {
+        //key = getchar();
+        bzero(input_buf, 256);
+        fgets(input_buf, 255, stdin);
+        if(strcmp(input_buf, "l\n") == 0) {
+        	console_log = !console_log;
+        }
+        else if(strcmp(input_buf, "q\n") == 0) {
+        	mlog("Shutting down server");
+            break;
+        }
+        else if(strcmp(input_buf, "list\n") == 0) {
+        	mlog("Logged clients:");
+        	char list[1024];
+   			list_all_sessions(list, 1024);
+   			mlogf("%s", list);
+        }
+        else if(strcmp(input_buf, "help\n") == 0) {
+        	printf("Commands:\n");
+        	printf("q - quit\n");
+        	printf("l - switch on/off logging to console\n");
+        	printf("list - list all logged clients and their tokens\n");
+        	printf("del <token> - delete session by token\n");
+        }
+        else {
+        	char* str_token;
+        	str_token = strtok(input_buf, " \n");
+        	if(strcmp(str_token, "del") != 0) {
+        		mlog("Wrong command");
+        		continue;
+        	}
+        	str_token = strtok(NULL, " \n");
+        	if (str_token == NULL) {
+        		mlog("Argument: client login");
+        		continue;
+        	}
+        	res = delete_session(str_token);
+        }
+        /*switch (key) {
         case 'l': // Turn on/off logging to console
             console_log = !console_log;
             break;
         case 'q': // Quit
             mlog("Shutting down server");
             break;
-        }
+        case 'c':
+        	mlog("Logged clients:");
+        	char list[1024];
+   			list_all_sessions(list, 1024);
+   			mlogf("%s", list);
+   			break;
+        }*/
     }
     close_socket(listen_socket, "no errors");
-
+    system("rm -rf data/session/*");
     log_close();
     sleep(1);
     return 0;
@@ -421,6 +464,13 @@ int check_token(int sockfd, struct request req)
     if (req.token == NULL) {
         send_response(sockfd, RESPONSE_ERROR, "You are not logged");
         return 1;
+    }
+    char* login;
+    int res = get_session_client(req.token, login);
+    if(res != 0 || login == NULL) {
+    	mlog("ERROR!");
+    	send_response(sockfd, RESPONSE_DELETED, "You have been disconnected");
+    	return 1;
     }
     return 0;
 }
