@@ -11,8 +11,8 @@
 #include <string.h>
 
 #define PORT 5001
-#define BUF_SIZE 1000
-#define MAIN_MENU "Hello!\nWhat do you want?\n 1.See lot titles\n 2.New lot *only for manager*\n 3.See online users (also rewrite userlist.txt)\n 4.Exit\n 5.End *only for manager* \n"
+#define BUF_SIZE 256
+#define MAIN_MENU "Hello!\n What do you want?\n 1.See lot titles\n 2.New lot *only for manager*\n 3.See online users (also rewrite userlist.txt)\n 4.Exit\n 5.End *only for manager* \n"
 #define WELCOME "Please type who are you: (log your_login) \n"
 #define LOTS "If you want to make a bet enter new bet, which will be higher than older ('bet lot_name lot_price')\n"
 #define NEW_LOT "Please write name and price of the new lot ('lot lot_name lot_price')\n"
@@ -105,27 +105,22 @@ void *ServerHandler(void* empty) {
         char buf[4];
         strncat(buf, text, 4);
         if (strcmp(kill_command, buf)==0) {
-            int j = 5;
-            while ((text[j] != NULL) && (text[j] != '\n'))
-                j++;
 
-            char name[j-5];
+            char name[]="";
+
             int i = 5;
-            while ((text[i] != NULL) && (text[i] != '\n')) {
+           while ((text[i] != NULL) && (text[i] != '\n')) {
                 name[i-5] = text[i];
                 i++;
             }
-            char *str = "123";
-            int login = FindNumberByName(str);
-            if (login != -1) {
-                if (!DeleteClient(users[login].login))
+                name[i-5]='\0';
+
+                if (!DeleteClient(name))
                     printf("All right \n");
                 else
                     printf("Bad command\n");
-            }
-            else
-                printf("Wrong name\n");
-        }
+           }
+
 
         if (strcmp(online_command, buf)==0) {
             char out[BUF_SIZE] = "";
@@ -417,14 +412,13 @@ int DeleteClient(char name[]) {
     if (number != -1) {
         if (users[number].manager)
             manager_count = false;
-            shutdown(users[number].s1, 2);
-            close(users[number].s1);
         //SendToClient(users[number].s1, "#");
         printf("\n The client %s was deleted \n", users[number].login);
         if (number != threads) {
             users[number] = users[threads];
             memset(&users[threads], NULL, sizeof (users[threads]));
         }
+
         return 0;
     }
     return 1;

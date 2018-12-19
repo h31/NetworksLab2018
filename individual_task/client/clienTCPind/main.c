@@ -10,7 +10,7 @@
 
 #define SRV_IP "127.0.0.1"
 #define PORT 5001
-#define BUF_SIZE 1000
+#define BUF_SIZE 256
 
 void SentErr(char *s) //error handling
 {
@@ -63,35 +63,37 @@ int main(void) {
 
     rc = pthread_create(&send_thread, &threadAttr, SendHandler, (void*) s);
     while (1) {
-        rc = recv(s, buf, BUF_SIZE, 0);
-        if (rc <= 0)
-            SentErr("Receive call failed");
-        else {
-            int i = 0;
-            while (buf[i] != NULL) {
-                if (buf[0] == '^')//If we doing something wrong
-                {
-                    printf("Invalid choose.Press enter and Try again\n");
-                }
-                if (buf[0] == '#')//If we was disconected
-                {
-                    printf("Closing connection...\n");
-                    return 0;
-                }
-                if (buf[0] == '%')//If we doing something wrong
-                {
-                    while (buf[i] != NULL) {
-                        printf("%c", buf[i]);
-                        i++;
+            rc = recv(s, buf, BUF_SIZE, 0);
+            if (rc <= 0)
+                SentErr("Receive call failed");
+            else {
+                int i = 0;
+                while (buf[i] != NULL) {
+                    if (buf[0] == '^')//If we doing something wrong
+                    {
+                        printf("Invalid choose.Press enter and Try again\n");
                     }
-                    printf("bidding is over. Closing connection...\n");
-                    return 0;
+                    if (buf[0] == '#')//If we was disconected
+                    {
+                        printf("Closing connection...\n");
+                        return 0;
+                    }
+                    if (buf[0] == '%')//If we doing something wrong
+                    {
+                        while (buf[i] != NULL) {
+                            printf("%c", buf[i]);
+                            i++;
+                        }
+                        printf("bidding is over. Closing connection...\n");
+                        return 0;
+                    }
+                    printf("%c", buf[i]);
+                    i++;
                 }
-                printf("%c", buf[i]);
-                i++;
             }
+
             printf("\n____________________\n");
         }
     }
-}
+
 
