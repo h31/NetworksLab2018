@@ -38,15 +38,6 @@ int send_request(int sockfd, struct request* req)
     // Count total length of request
     length = sizeof(int) * 3 + (type_length + arg1_length + arg2_length + token_length) * sizeof(char);
 
-	// NEW: send length in body
-    // Send length to server
-    /*res = write(sockfd, &length, sizeof(int));
-    if (res < 0) {
-        close_socket(sockfd, "ERROR write length to socket");
-        return -1;
-    }
-    printf("I send %d/%d bytes\ntype=%s\nrequest_length=%d\n", res, sizeof(int), req->comm.type, length);*/
-
     // Allocate memory for request
     buf = (char*)malloc(sizeof(int) + length);
     bzero(buf, sizeof(int) + length);
@@ -88,11 +79,11 @@ int send_request(int sockfd, struct request* req)
 
     // check
     
-	int i;
-	printf("request bytes:\n");
-	for(i = 0; i < length + sizeof(int); i++) {
-		printf("req: %X\n", buf[i]);
-	}
+	//int i; //don't delete it
+	//printf("request bytes:\n");
+	//for(i = 0; i < length + sizeof(int); i++) {
+	//	printf("req: %X\n", buf[i]);
+	//}
 
     // Send request to server
     res = write(sockfd, buf, length+sizeof(int));
@@ -100,7 +91,7 @@ int send_request(int sockfd, struct request* req)
         close_socket(sockfd, "ERROR write request to socket");
         return -1;
     }
-    printf("I send %d/%d bytes\n", res, length+sizeof(int));
+    //printf("I send %d/%d bytes\n", res, length+sizeof(int));
 
     return OK;
 }

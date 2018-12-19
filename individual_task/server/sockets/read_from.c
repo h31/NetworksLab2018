@@ -3,13 +3,15 @@
 int read_from(int sockfd, char* buffer, int length)
 {
     int read_length = length;
+    int buffer_index = 0;
     ssize_t n;
     bzero(buffer, length);
 
     mlogf("Start reading %d bytes from %d socket", length, sockfd);
 
     while (read_length > 0) {
-        n = read(sockfd, buffer, read_length);
+        n = read(sockfd, &buffer[buffer_index], read_length);
+        buffer_index += n;
         read_length -= n;
         mlogf("Read %d bytes, left %d bytes", n, read_length);
         if (n < 0) {

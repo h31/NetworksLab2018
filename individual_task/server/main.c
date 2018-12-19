@@ -94,20 +94,6 @@ int main()
         	}
         	res = delete_session(str_token);
         }
-        /*switch (key) {
-        case 'l': // Turn on/off logging to console
-            console_log = !console_log;
-            break;
-        case 'q': // Quit
-            mlog("Shutting down server");
-            break;
-        case 'c':
-        	mlog("Logged clients:");
-        	char list[1024];
-   			list_all_sessions(list, 1024);
-   			mlogf("%s", list);
-   			break;
-        }*/
     }
     close_socket(listen_socket, "no errors");
     system("rm -rf data/session/*");
@@ -213,7 +199,7 @@ void get_request_handler(int sockfd, struct request req)
         return;
 
     int res;
-    char login[1];
+    char login[100];
     int cash;
     char cash_string[20];
     char password[128];
@@ -363,7 +349,7 @@ void del_request_handler(int sockfd, struct request req)
         return;
     // Delete data
     int res;
-    char login[1];
+    char login[128];
     res = get_session_client(req.token, login);
     if (handle_errors(sockfd, res))
         return;
@@ -377,6 +363,7 @@ void del_request_handler(int sockfd, struct request req)
         return;
 
     send_response(sockfd, RESPONSE_DELETED, "User data deleted");
+    return;
 }
 
 // Function for handling quit request
@@ -465,7 +452,7 @@ int check_token(int sockfd, struct request req)
         send_response(sockfd, RESPONSE_ERROR, "You are not logged");
         return 1;
     }
-    char* login;
+    char login[100];
     int res = get_session_client(req.token, login);
     if(res != 0 || login == NULL) {
     	mlog("ERROR!");
