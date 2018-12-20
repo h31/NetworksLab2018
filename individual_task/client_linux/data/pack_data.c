@@ -6,7 +6,7 @@
 
 void pack_data(int data[], int size,  char* buff)
 {
-    char * primes = (char *) malloc(size);
+    char * primes = (char *) malloc(50000);
 
     int cur_primes = 0;
 

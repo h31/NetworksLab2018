@@ -7,7 +7,7 @@ int read_socket(int sockfd, char* buffer, int length)
 {
     int read_length = length;
     ssize_t n;
-    bzero(buffer, length);
+    bzero(buffer, read_length);
 
     while (read_length > 0) {
         n = recv(sockfd, buffer, read_length, NULL);

@@ -18,17 +18,9 @@ int parse_request(char* str, struct request* req)
     str_token = strtok(NULL, " \n");
     if (str_token == NULL) {
         req->comm.arg1 = 0;
-        req->comm.arg2 = 0;
         return WORKING_SOCKET;
     }
     req->comm.arg1 = str_token;
 
-    // Get arg2
-    str_token = strtok(NULL, " \n");
-    if (str_token == NULL) {
-        req->comm.arg2 = 0;
-        return WORKING_SOCKET;
-    }
-    req->comm.arg2 = str_token;
     return WORKING_SOCKET;
 }

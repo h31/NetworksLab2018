@@ -9,35 +9,18 @@ int get_list_of_primes(struct prime_numbers* data, char* primes, char* count)
     char* ptr;
     int n = (int)strtol(count,&ptr,10);
     int tmp[n];
-    int cur_size = 0;
 
     // Check if size of count correct
-    if (n <= 0)
+    if (n <= 0 || n > PRIMESSIZE)
     {
         return INCORRECT_COUNT;
-    }
-
-    // Check if prime array is empty
-    int flag = 0;
-    for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
-        if (data->primes[i] != 0) flag = 1;
-    }
-    if (!flag){
-        sprintf(&primes[0], "%d", 0);
-        return OK;
-    }
-
-    // Find current count of prime numbers
-    for(int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++){
-        if (data->primes[i] == 0) break;
-        cur_size++;
     }
 
     bzero(tmp, n);
 
     // Fill temporary array with prime numbers
-    for (int i = cur_size - 1; i >= cur_size - n - 1; i--) {
-        tmp[cur_size - 1 - i] = data->primes[i];
+    for (int i = PRIMESSIZE - 1; i >= PRIMESSIZE - n - 1; i--) {
+        tmp[PRIMESSIZE - 1 - i] = data->primes[i];
     }
 
     // Convert array of prime numbers to string

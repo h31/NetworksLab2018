@@ -7,13 +7,13 @@
 int find_maxprime(struct prime_numbers* data)
 {
 
-    int cur_size = 0;
+    int max = data->primes[0];
 
     // Find current count of prime numbers
-    for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
-        if (data->primes[i] == 0) break;
-        cur_size++;
+    for (int i = 0; i < PRIMESSIZE; i++) {
+        if (max < data->primes[i])
+            max = data->primes[i];
     }
 
-    return cur_size == 0 ? 0 : data->primes[cur_size-1];
+    return max;
 }

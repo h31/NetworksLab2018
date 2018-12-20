@@ -6,7 +6,7 @@
 
 void pack_data(struct prime_numbers* data, char* buff)
 {
-    char * primes = (char *) malloc(sizeof(data->primes)/sizeof(data->primes[0]));
+    char * primes = (char *) malloc(PRIMESSIZE);
     char range[10] = {0};
     char current_range[10] = {0};
 
@@ -16,18 +16,10 @@ void pack_data(struct prime_numbers* data, char* buff)
     sprintf(range, "%d", data->range);
     strcat(range, ";");
 
-    int cur_primes = 0;
-
-    // Find current count of prime numbers
-    for (int i = 0; i < (int)(sizeof(data->primes)/sizeof(data->primes[0])); i++) {
-        if (data->primes[i] == 0) break;
-        cur_primes++;
-    }
-
     // Convert server primes to string
     int index = 0;
-    for (int i = 0; i < cur_primes; i++) {
-        if (i == cur_primes - 1) index += sprintf(&primes[index], "%d", data->primes[i]);
+    for (int i = 0; i < PRIMESSIZE; i++) {
+        if (i == PRIMESSIZE - 1) index += sprintf(&primes[index], "%d", data->primes[i]);
         else index += sprintf(&primes[index], "%d ", data->primes[i]);
     }
 

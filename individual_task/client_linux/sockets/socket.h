@@ -25,7 +25,6 @@
 struct command {
     char* type;
     char* arg1;
-    char* arg2;
 };
 
 // Request to server

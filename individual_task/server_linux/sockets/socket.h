@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 //Socket interaction result
 #define WORKING_SOCKET 0
@@ -23,7 +24,6 @@
 struct command {
     char* type;
     char* arg1;
-    char* arg2;
 };
 
 // Request from client

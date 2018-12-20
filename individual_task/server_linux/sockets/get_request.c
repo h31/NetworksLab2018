@@ -21,7 +21,7 @@ int get_request(int sockfd, struct request* req)
     }
 
     message_length = *(int*)buf;
-    if (message_length <= 0 || message_length > 65536) {
+    if (message_length <= 0 || message_length > 1024) {
         return REQUEST_LENGTH_ERROR;
     }
 
@@ -60,20 +60,6 @@ int get_request(int sockfd, struct request* req)
         buf_pointer += arg_length;
     } else {
         req->comm.arg1 = 0;
-    }
-
-    // Get length of arg2
-    bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
-    buf_pointer += sizeof(int);
-
-    // Get arg2
-    if (arg_length > 0) {
-        req->comm.arg2 = (char*)malloc(arg_length * sizeof(char) + 1);
-        bzero(req->comm.arg2, arg_length * sizeof(char) + 1);
-        bcopy(&buf[buf_pointer], req->comm.arg2, arg_length * sizeof(char));
-        buf_pointer += arg_length;
-    } else {
-        req->comm.arg2 = 0;
     }
 
     // Get token

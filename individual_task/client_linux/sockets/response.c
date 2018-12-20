@@ -7,7 +7,7 @@
 int response(int sockfd, struct response* resp)
 {
     int res; // Result of reading
-    char* buf; // Buffer for reqding
+    char* buf; // Buffer for reading
     int message_length; // Length of message without first sizeof(int) bytes
 
     int arg_length;
@@ -22,7 +22,7 @@ int response(int sockfd, struct response* resp)
     }
 
     message_length = *(int*)buf;
-    if (message_length <= 0 || message_length > 65536) {
+    if (message_length <= 0 || message_length > 1024) {
         printf("Illegal length of request: %d\n", message_length);
         return REQUEST_LENGTH_ERROR;
     }

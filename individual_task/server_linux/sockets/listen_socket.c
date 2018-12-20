@@ -24,9 +24,7 @@ int listen_socket()
     serv_addr.sin_port = htons(portno);
 
     // Set SO_REUSEPORT and SO_REUSEADDR options
-    if (setsockopt(sockfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), &(int) { 1 },
-                   sizeof(int))
-        < 0) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int) { 1 }, sizeof(int)) < 0) {
         close_socket(sockfd, "ERROR on setsockopt");
         exit(1);
     }

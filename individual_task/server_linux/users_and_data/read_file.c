@@ -6,28 +6,24 @@
 
 int read_file(char* filename, char* buf, int length)
 {
-    FILE* file;
+    int file;
     int res;
 
     // Open file for reading
-    file = fopen(filename, "r");
-    if (file == NULL) {
+    if ((file = open(filename, O_RDONLY)) == -1) {
         return OPEN_FILE_ERROR;
     }
 
     // Read data from file to buf
-    res = fread(buf, sizeof(char), length, file);
+    res = read(file, buf, length);
 
     // Check for errors
-    if (res < length) {
-        if (feof(file) == 0) {
-            return READ_FILE_ERROR;
-        }
+    if (res == -1) {
+        return READ_FILE_ERROR;
     }
 
     // Close file
-    res = fclose(file);
-    if (res != 0) {
+    if (close(file) == -1) {
         return CLOSE_FILE_ERROR;
     }
     return OK;

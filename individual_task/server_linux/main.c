@@ -2,7 +2,8 @@
 #include "sockets/socket.h"
 #include <pthread.h>
 
-#define BUFSIZE 8192
+#define BUFSIZE 1024
+#define RECV_SIZE 5000
 
 char* filename = "server_data.txt";
 char buff[BUFSIZE];
@@ -145,8 +146,8 @@ void reg_request_handler(int sockfd, struct request req)
         return;
 
     // Create new session for client
-    char token[50];
-    res = create_session(req.comm.arg1, token, 50);
+    char token[20];
+    res = create_session(req.comm.arg1, token, 20);
     if (handle_errors(sockfd, res))
         return;
 
@@ -161,7 +162,7 @@ void login_request_handler(int sockfd, struct request req)
     if (check_arguments(sockfd, req))
         return;
 
-    // Delete prevous session
+    // Delete previous session
     if (req.token != NULL) {
         delete_session(req.token);
     }
@@ -174,8 +175,8 @@ void login_request_handler(int sockfd, struct request req)
         return;
 
     // Login client and return session token
-    char token[50];
-    res = create_session(req.comm.arg1, token, 50);
+    char token[20];
+    res = create_session(req.comm.arg1, token, 20);
     if (handle_errors(sockfd, res))
         return;
 
@@ -214,6 +215,7 @@ void maxprime_request_handler(int sockfd, struct request req)
         return;
 
     char max[20];
+    bzero(max, 20);
     int maxprime = find_maxprime(&data);
 
     sprintf(max, "%d", maxprime);
@@ -233,7 +235,8 @@ void primes_request_handler(int sockfd, struct request req)
     if (check_arguments(sockfd, req))
         return;
 
-    char primes[sizeof(data.primes)/sizeof(data.primes[0])] = {0};
+    char primes[BUFSIZE];
+    bzero(primes, BUFSIZE);
 
     int res = get_list_of_primes(&data, primes, req.comm.arg1);
 
@@ -243,7 +246,7 @@ void primes_request_handler(int sockfd, struct request req)
     send_response(sockfd, RESPONSE_OK, primes);
 }
 
-//Function for getting a range for caclulations
+//Function for getting a range for calculations
 void range_request_handler(int sockfd, struct request req)
 {
     // Check if token is NULL
@@ -251,6 +254,7 @@ void range_request_handler(int sockfd, struct request req)
         return;
 
     char range[20];
+    bzero(range, 20);
 
     sprintf(range, "%d", data.range);
 
@@ -266,35 +270,47 @@ void calc_request_handler(int sockfd, struct request req)
 
     check_range(&data, buff);
 
-    int res = send(sockfd, buff, sizeof(buff), NULL);
-    if (handle_errors(sockfd, res))
+    int res = send(sockfd, buff, BUFSIZE, NULL);
+    if (res < 0) {
+        handle_errors(sockfd, WRITING_ERROR);
         return;
-
-    bzero(buff, BUFSIZE);
-    char calc_range[10] = {0};
-    sprintf(calc_range, "%d", data.current_range);
-
-    res = send(sockfd, calc_range, sizeof(calc_range), NULL);
-    if (handle_errors(sockfd, res))
-        return;
-
-    char read_data[BUFSIZE] = {0};
-    res = read_socket(sockfd, read_data, sizeof(read_data));
-    if (handle_errors(sockfd, res))
-        return;
-
-    int cur_primes = 0;
-
-    // Find current count of prime numbers
-    for (int i = 0; i < (int)(sizeof(data.primes)/sizeof(data.primes[0])); i++) {
-        if (data.primes[i] == 0) break;
-        cur_primes++;
     }
 
-    data.current_range++;
+    bzero(buff, BUFSIZE);
+    char calc_range[20];
+    bzero(calc_range, 20);
+    sprintf(calc_range, "%d", data.current_range);
+
+    res = send(sockfd, calc_range, 20, NULL);
+    if (res < 0) {
+        handle_errors(sockfd, WRITING_ERROR);
+        return;
+    }
+
+    char range[20];
+    bzero(range, 20);
+    sprintf(range, "%d", data.range);
+
+    res = send(sockfd, range, 20, NULL);
+    if (res < 0) {
+        handle_errors(sockfd, WRITING_ERROR);
+        return;
+    }
+
+    char* read_data;
+    read_data = (char *) malloc(RECV_SIZE);
+    bzero(read_data, RECV_SIZE);
+
+    res = read_socket(sockfd, read_data, RECV_SIZE);
+    if (res < 0) {
+        handle_errors(sockfd, WRITING_ERROR);
+        return;
+    }
+
     char* ptr;
+    data.current_range++;
     char* prime = strtok(read_data, " ");
-    int i = cur_primes;
+    int i = 0;
     data.primes[i] = (int)strtol(prime, &ptr, 10);
 
     while (prime != NULL){
@@ -303,10 +319,11 @@ void calc_request_handler(int sockfd, struct request req)
         if (prime == NULL) break;
         data.primes[i] = (int)strtol(prime, &ptr, 10);
     }
+    bzero(read_data, RECV_SIZE);
 
-    pack_data(&data, buff);
-    write_file(filename, buff, sizeof(buff));
-    bzero(buff, BUFSIZE);
+    pack_data(&data, read_data);
+    write_file(filename, read_data, RECV_SIZE);
+    bzero(read_data, RECV_SIZE);
 
     send_response(sockfd, RESPONSE_OK, "Prime numbers was calculated");
 }
@@ -376,7 +393,7 @@ int handle_errors(int sockfd, int error)
             send_response(sockfd, RESPONSE_ERROR, "Upper bound must be larger than lower bound");
             return 1;
         case INCORRECT_COUNT:
-            send_response(sockfd, RESPONSE_ERROR, "Count must be larger than 0");
+            send_response(sockfd, RESPONSE_ERROR, "Count must be larger than 0 and less than array of primes size");
             return 1;
         case OTHER_ERROR:
             send_response(sockfd, RESPONSE_ERROR, "Internal error");

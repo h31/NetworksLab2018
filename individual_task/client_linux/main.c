@@ -1,31 +1,30 @@
 #include "sockets/socket.h"
 #include "data/data.h"
 
-#define BUFSIZE 8192
-
 int main(int argc, char* argv[])
 {
-    int serv_data[1000];
     struct request req; // Request to server
     struct response resp; // Response from server
     int sockfd; // Socket for connection to server
     int res;
     char buf[256]; // Input buffer
     char mes_buf[BUFSIZE]; // Message from server
-    char size[10]; // Range for calculation
-    char send_data[BUFSIZE];
-    char token[50]; // Token for session
-    char login[50]; // Client login
+    char size[10]; // Current range for calculation
+    char range[10]; // Server range
+    char send_data[BUFSIZE]; // Data sent to server
+    char token[20]; // Token for session
+    char login[20]; // Client login
 
     // Clear token
-    bzero(token, 50);
+    bzero(token, 20);
 
     // Clear login
-    bzero(login, 50);
+    bzero(login, 20);
 
     // Clear message
     bzero(mes_buf, BUFSIZE);
-    bzero(size, 10);
+    bzero(size, sizeof(size));
+    bzero(range, sizeof(range));
     bzero(send_data, BUFSIZE);
 
     // Connect to server
@@ -78,31 +77,49 @@ int main(int argc, char* argv[])
             break;
         }
 
-        if (strcmp(req.comm.type, "CALC") == 0){
+        if (strcmp(req.comm.type, "CALC") == 0 && strlen(req.token) != 0){
+            char* ptr;
             res = read_socket(sockfd, mes_buf, BUFSIZE);
             if (res < 0) {
                 break;
             }
             strcat(mes_buf, "\n");
             printf(mes_buf);
+            bzero(mes_buf, BUFSIZE);
 
-            res = read_socket(sockfd, size, 10);
+            res = read_socket(sockfd, size, 20);
             if (res < 0) {
                 break;
             }
-            int range = atoi(size);
-            res = calculate_data(serv_data, range);
+            int current_range = (int)strtol(size, &ptr, 10);
+            bzero(size, 20);
+
+            char tmp[20];
+            memcpy(tmp, token, 20);
+            res = read_socket(sockfd, range, 20);
             if (res < 0) {
                 break;
             }
 
-            pack_data(serv_data, 1000, send_data);
-            res = send(sockfd, send_data, sizeof(send_data), NULL);
+            int calc_range = (int)strtol(range, &ptr, 10);
+            bzero(range, 20);
+
+            int serv_data[SEND_SIZE];
+            bzero(serv_data, SEND_SIZE);
+
+            res = calculate_data(serv_data, current_range, calc_range);
             if (res < 0) {
                 break;
             }
 
-            //printf("Prime numbers were calculated\n");
+            pack_data(serv_data, calc_range, send_data);
+            res = send(sockfd, send_data, 5000, NULL);
+            if (res < 0) {
+                break;
+            }
+
+            memcpy(token, tmp, 20);
+            bzero(serv_data, SEND_SIZE);
         }
 
         // Read response
