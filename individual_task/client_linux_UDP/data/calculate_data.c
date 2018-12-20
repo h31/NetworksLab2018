@@ -4,11 +4,10 @@
 
 #include "data.h"
 
-int calculate_data(int data[], int range)
+int calculate_data(int data[], int current_range, int range)
 {
-    char* ptr;
-    int lb = range == 0 ? 2 : range * 1000 + 1;
-    int ub = (range + 1) * 1000;
+    int lb = current_range == 0 ? 2 : current_range * range + 1;
+    int ub = (current_range + 1) * range;
     int flag;
     int cur_size = 0;
 
@@ -26,10 +25,23 @@ int calculate_data(int data[], int range)
         }
         if (flag == 0)
         {
+            if (cur_size == SEND_SIZE) cur_size = 0;
             data[cur_size] = lb;
             cur_size++;
         }
         lb++;
+    }
+
+
+    // Sort all prime numbers
+    for (int i = 0; i < SEND_SIZE - 1; i++) {
+        for (int j = i; j < SEND_SIZE; j++) {
+            if (data[i] > data[j]){
+                int temp = data[j];
+                data[j] = data[i];
+                data[i] = temp;
+            }
+        }
     }
 
     return 0;

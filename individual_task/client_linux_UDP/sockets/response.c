@@ -4,14 +4,32 @@
 
 #include "socket.h"
 
-int response(int sockfd, struct response* resp, struct sockaddr_in * serv_addr)
+int response(int sockfd, struct response* resp, struct sockaddr_in * serv_addr, struct request* req)
 {
     int res; // Result of reading
-    char* buf; // Buffer for reqding
+    char* buf; // Buffer for reading
     int message_length; // Length of message without first sizeof(int) bytes
+    int num; // Number of message
 
     int arg_length;
     int buf_pointer = 0;
+
+    // Get index of message
+    buf = (char*)malloc(sizeof(int));
+    res = read_socket(sockfd, buf, sizeof(int), serv_addr);
+    // Throw errors
+    if (res != WORKING_SOCKET) {
+        return res;
+    }
+
+    num = *(int*)buf;
+    if (num != req->index) {
+        return LOST_OR_WRONG_PACKET;
+    }
+    resp->index = num;
+
+    // Clear memory
+    free(buf);
 
     // Get length of request
     buf = (char*)malloc(sizeof(int));

@@ -12,7 +12,7 @@ int read_socket(int sockfd, char* buffer, int length, struct sockaddr_in * serv_
     bzero(buffer, read_length);
 
     while (read_length > 0) {
-        n = recvfrom(sockfd, buffer, read_length, MSG_WAITALL, serv_addr, &slen);
+        n = recvfrom(sockfd, buffer, read_length, MSG_WAITALL, (struct sockaddr *) serv_addr, &slen);
         read_length -= n;
         if (n == -1) {
             return READING_ERROR;

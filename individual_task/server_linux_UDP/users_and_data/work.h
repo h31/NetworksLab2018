@@ -2,6 +2,8 @@
 // Created by mrsandman on 09.12.18.
 //
 
+#include <fcntl.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,10 +29,12 @@
 #define CLIENTS_FOLDER "data/clients/"
 #define SESSION_FOLDER "data/session/"
 
+#define PRIMESSIZE 50
+
 struct prime_numbers{
     int current_range;
     int range;
-    int primes[10000];
+    int primes[PRIMESSIZE];
 };
 
 // Call this function on start. Creates folders for data

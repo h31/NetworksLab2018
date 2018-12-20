@@ -14,6 +14,7 @@
 #define WRITING_ERROR 402
 #define READING_IS_NOT_FINISHED 403
 #define REQUEST_LENGTH_ERROR 404
+#define LOST_OR_WRONG_PACKET 405
 
 #define RESPONSE_ERROR "ERR" // When we got error on handle request
 #define RESPONSE_OK "OK"
@@ -23,11 +24,11 @@
 struct command {
     char* type;
     char* arg1;
-    char* arg2;
 };
 
 // Request from client
 struct request {
+    int index;
     struct command comm;
     char* token;
 };
@@ -47,4 +48,4 @@ int read_socket(int sockfd, char* buffer, int length, struct sockaddr_in * cli_a
 
 // Send responce to client
 // Wrap response to byte array and write it to socket
-int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr);
+int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr, int index);

@@ -11,7 +11,7 @@ int listen_socket()
     struct sockaddr_in serv_addr;
 
     // Create new socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
         perror("ERROR opening socket");
         exit(1);
     }

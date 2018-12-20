@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="server_linux"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="server_linux">
+				<Option output="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/server_linux" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_linux"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="server_linux/fast">
+				<Option output="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/server_linux" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 server_linux/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/mrsandman/CLionProjects/server_linux_UDP/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/main.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/close_socket.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/get_request.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/listen_socket.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/read_socket.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/response_request.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/sockets/socket.h">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/check_range.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/check_user.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/clear_data.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/create_data_storage.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/create_session.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/create_user.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/delete_session.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/delete_user.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/find_maxprime.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/generate_token.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/get_list_of_primes.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/get_session_client.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/pack_data.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/read_file.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/retrieve_data.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/work.h">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/users_and_data/write_file.c">
+			<Option target="server_linux"/>
+		</Unit>
+		<Unit filename="/home/mrsandman/CLionProjects/server_linux_UDP/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

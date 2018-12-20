@@ -8,9 +8,29 @@ int get_request(int sockfd, struct request* req, struct sockaddr_in * cli_addr)
     int readRes; // Result of reading
     char* buf; // Buffer for reading
     int message_length; // Length of message without first sizeof(int) bytes
+    int num; // Number of message
 
     int arg_length;
     int buf_pointer = 0;
+
+
+    // Get index of message
+    buf = (char*)malloc(sizeof(int));
+    readRes = read_socket(sockfd, buf, sizeof(int), cli_addr);
+    // Throw errors
+    if (readRes != WORKING_SOCKET) {
+        return readRes;
+    }
+
+    num = *(int*)buf;
+    if (num == req->index) {
+        printf("Lost or wrong packet");
+        return LOST_OR_WRONG_PACKET;
+    }
+    req->index = num;
+
+    // Clear memory
+    free(buf);
 
     // Get length of request
     buf = (char*)malloc(sizeof(int));
@@ -60,20 +80,6 @@ int get_request(int sockfd, struct request* req, struct sockaddr_in * cli_addr)
         buf_pointer += arg_length;
     } else {
         req->comm.arg1 = 0;
-    }
-
-    // Get length of arg2
-    bcopy(&buf[buf_pointer], &arg_length, sizeof(int));
-    buf_pointer += sizeof(int);
-
-    // Get arg2
-    if (arg_length > 0) {
-        req->comm.arg2 = (char*)malloc(arg_length * sizeof(char) + 1);
-        bzero(req->comm.arg2, arg_length * sizeof(char) + 1);
-        bcopy(&buf[buf_pointer], req->comm.arg2, arg_length * sizeof(char));
-        buf_pointer += arg_length;
-    } else {
-        req->comm.arg2 = 0;
     }
 
     // Get token

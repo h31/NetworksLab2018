@@ -1,19 +1,18 @@
 #include "sockets/socket.h"
 #include "data/data.h"
 
-#define BUFSIZE 8192
-
 int main()
 {
+    int index = 0;
     struct sockaddr_in serv_addr;
-    int serv_data[1000];
     struct request req; // Request to server
     struct response resp; // Response from server
     int sockfd; // Socket for connection to server
     int res;
     char buf[256]; // Input buffer
     char mes_buf[BUFSIZE]; // Message from server
-    char size[10]; // Range for calculation
+    char size[10]; // Current range for calculation
+    char range[10]; // Server range
     char send_data[BUFSIZE];
     char token[50]; // Token for session
     char login[50]; // Client login
@@ -37,6 +36,7 @@ int main()
     printf("Connected to server with fd=%d\n", sockfd);
 
     while (1) {
+        index++;
         // Print console text
         if (strlen(login) == 0) {
             strcpy(login, "new-user");
@@ -74,12 +74,13 @@ int main()
         req.token = token;
 
         // Send request
-        res = send_request(sockfd, &req, &serv_addr);
+        res = send_request(sockfd, &req, &serv_addr, index);
         if (res < 0) {
             break;
         }
 
-        if (strcmp(req.comm.type, "CALC") == 0){
+        if (strcmp(req.comm.type, "CALC") == 0 && strlen(req.token) != 0){
+            char* ptr;
             res = read_socket(sockfd, mes_buf, BUFSIZE, &serv_addr);
             if (res < 0) {
                 break;
@@ -91,23 +92,37 @@ int main()
             if (res < 0) {
                 break;
             }
-            int range = atoi(size);
-            res = calculate_data(serv_data, range);
+            int current_range = (int)strtol(size, &ptr, 10);
+
+            char tmp[20];
+            memcpy(tmp, token, 20);
+            res = read_socket(sockfd, range, 10, &serv_addr);
+            if (res < 0) {
+                break;
+            }
+            int calc_range = (int)strtol(range, &ptr, 10);
+
+            int serv_data[SEND_SIZE];
+            bzero(serv_data, SEND_SIZE);
+
+            res = calculate_data(serv_data, current_range, calc_range);
             if (res < 0) {
                 break;
             }
 
-            pack_data(serv_data, 1000, send_data);
-            res = sendto(sockfd, send_data, sizeof(send_data), MSG_CONFIRM, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+            pack_data(serv_data, calc_range, send_data);
+            res = sendto(sockfd, send_data, 5000, MSG_CONFIRM, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
             if (res < 0) {
                 break;
             }
 
-            //printf("Prime numbers were calculated\n");
+            memcpy(token, tmp, 20);
+            bzero(serv_data, SEND_SIZE);
+
         }
 
         // Read response
-        res = response(sockfd, &resp, &serv_addr);
+        res = response(sockfd, &resp, &serv_addr, &req);
         if (res < 0) {
             break;
         }

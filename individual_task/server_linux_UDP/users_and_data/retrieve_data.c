@@ -24,6 +24,7 @@ void retrieve_data(struct prime_numbers* data, char* buff)
     data->primes[0] = (int)strtol(prime, &ptr, 10);
     int i = 1;
     while (prime != NULL){
+        if (i == PRIMESSIZE) i = 0;
         prime = strtok(NULL, " ");
         if (prime == NULL) break;
         data->primes[i] = (int)strtol(prime, &ptr, 10);

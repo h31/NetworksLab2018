@@ -6,28 +6,24 @@
 
 int write_file(char* filename, char* buf, int length)
 {
-    FILE* file;
+    int file;
     int res;
 
     // Open file for reading
-    file = fopen(filename, "w");
-    if (file == NULL) {
+    if ((file = open(filename, O_WRONLY | O_CREAT)) == -1) {
         return OPEN_FILE_ERROR;
     }
 
-    // Write data from buf to file
-    res = fwrite(buf, sizeof(char), length, file);
+    // Read data from file to buf
+    res = write(file, buf, length);
 
     // Check for errors
-    if (res < length) {
-        if (feof(file) == 0) {
-            return WRITE_FILE_ERROR;
-        }
+    if (res == -1) {
+        return READ_FILE_ERROR;
     }
 
     // Close file
-    res = fclose(file);
-    if (res != 0) {
+    if (close(file) == -1) {
         return CLOSE_FILE_ERROR;
     }
     return OK;

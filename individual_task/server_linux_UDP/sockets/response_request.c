@@ -3,7 +3,7 @@
 //
 #include "socket.h"
 
-int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr)
+int response_request(int sockfd, char* type, char* payload, struct sockaddr_in * cli_addr, int index)
 {
     int type_length; // Length of response type
     int payload_length; // Length of payload type
@@ -12,6 +12,12 @@ int response_request(int sockfd, char* type, char* payload, struct sockaddr_in *
 
     int res;
     int buf_pointer = 0;
+
+    res = sendto(sockfd, &index, sizeof(int), 0, (struct sockaddr *) cli_addr, sizeof(*cli_addr));
+    if (res == -1) {
+        close_socket(sockfd, "ERROR write length to socket");
+        return -1;
+    }
 
     // Set type length
     type_length = strlen(type);
@@ -23,7 +29,7 @@ int response_request(int sockfd, char* type, char* payload, struct sockaddr_in *
     length = sizeof(int) * 2 + (type_length + payload_length) * sizeof(char);
 
     // Send length to client
-    res = sendto(sockfd, &length, sizeof(int), 0, cli_addr, sizeof(*cli_addr));
+    res = sendto(sockfd, &length, sizeof(int), 0, (struct sockaddr *)cli_addr, sizeof(*cli_addr));
     if (res < 0) {
         return WRITING_ERROR;
     }
@@ -49,7 +55,7 @@ int response_request(int sockfd, char* type, char* payload, struct sockaddr_in *
     buf_pointer += payload_length * sizeof(char);
 
     // Send response to client
-    res = sendto(sockfd, buf, length, 0, cli_addr, sizeof(*cli_addr));
+    res = sendto(sockfd, buf, length, 0, (struct sockaddr *) cli_addr, sizeof(*cli_addr));
     free(buf);
 
     if (res < 0) {
