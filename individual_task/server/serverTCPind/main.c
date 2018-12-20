@@ -13,7 +13,7 @@
 #define PORT 5001
 #define BUF_SIZE 256
 #define MAIN_MENU "Hello!\n What do you want?\n 1.See lot titles\n 2.New lot *only for manager*\n 3.See online users (also rewrite userlist.txt)\n 4.Exit\n 5.End *only for manager* \n"
-#define WELCOME "Please type who are you: (log your_login)\n"
+#define WELCOME "Please type who are you:     (log your_login)\n"
 #define LOTS "If you want to make a bet enter new bet, which will be higher than older\n ('bet lot_name lot_price')\n"
 #define NEW_LOT "Please write name and price of the new lot ('lot lot_name lot_price')\n"
 #define SUCCESS "The new lot has created!\n"
@@ -80,15 +80,20 @@ static char *commands[] = {
 int servSocket;
 
 
-void readn(int sk, char* buf) {
+int readn(int sk, char* buf) {
     char symb[1];
     for (int i = 0; ; i++) {
-        if (recv(sk, symb, 1, 0) < 0) {
+        int rc = recv(sk, symb, 1, 0);
+        if ( rc <0) {
             perror("ERROR reading from socket");
-            exit(1);
+            return -1;
+            //exit(1);
         }
+    if (rc==0)
+        return 1;
         if (symb[0] == 10){
-            break;
+            //break;
+            return 0;
         }
         buf[i] = symb[0];
     }
@@ -119,8 +124,7 @@ void *ServerHandler(void* empty) {
 
                 if (!DeleteClient(name)){
                     printf("All right \n");
-                    DisconnectUser(users[FindNumberByName(name)].s1);
-                    pthread_exit(NULL);
+                    DisconnectUser(FindNumberByName(name));
                 }
                 else
                     printf("Bad command\n");
@@ -164,7 +168,17 @@ void *ClientHandler(void* arg) {
     while (1) {
         char buf[ BUF_SIZE ]; //Buffer
         char pick[5] = "";
-        readn(socket, buf);
+        switch(readn(socket, buf)){
+            case 0:{
+                break;
+            }
+            case 1:{
+                pthread_exit(NULL);
+            }
+            default:{
+                exit(0);
+            };
+        }
         int position = 0;
         while ((buf[position] != ' ') && (buf[position] != '\n') && (buf[position] != NULL) && (position != 5))
         {
