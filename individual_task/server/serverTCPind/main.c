@@ -104,6 +104,7 @@ void *ServerHandler(void* empty) {
         fgets(text, BUF_SIZE, stdin);
 
         char buf[4];
+        memset(buf, 0, 4);
         strncat(buf, text, 4);
         if (strcmp(kill_command, buf)==0) {
 
@@ -118,7 +119,7 @@ void *ServerHandler(void* empty) {
 
                 if (!DeleteClient(name)){
                     printf("All right \n");
-                    DisconnectUser(name);
+                    DisconnectUser(users[FindNumberByName(name)].s1);
                     pthread_exit(NULL);
                 }
                 else
@@ -129,6 +130,10 @@ void *ServerHandler(void* empty) {
         if (strcmp(online_command, buf)==0) {
             char out[BUF_SIZE] = "";
             WhoIsOnline(out);
+            FILE *userlist;
+            userlist = fopen("userlist.txt","w");
+            fprintf(userlist,out);
+            fclose(userlist);
             printf(out);
         }
 
@@ -336,10 +341,6 @@ void *ClientHandler(void* arg) {
                 char out[BUF_SIZE] = " ";
                 WhoIsOnline(out);
                 SendToClient(socket, out);
-                FILE *userlist;
-                userlist = fopen("userlist.txt","w");
-                fprintf(userlist,out);
-                fclose(userlist);
                 SendToClient(socket, MAIN_MENU);
                 break;
             }
@@ -442,7 +443,7 @@ void WhoIsOnline(char* out) {
     //Show logins
     for (int i = 0; i <= threads; i++) {
         strncat(out, users[i].login, strlen(users[i].login));
-        strncat(out, " ", 1);
+        strncat(out, "\n", 1);
     }
 }
 
@@ -530,7 +531,7 @@ void SendResults() {
 }
 
 void DisconnectUser(int i) {
-        SendToClient(users[i].s1, "#");
+   //     SendToClient(users[i].s1, "#");
         shutdown(users[i].s1, 2);
         close(users[i].s1);
 }
