@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <memory.h>
 
 #define SRV_IP "127.0.0.1"
 #define PORT 5001
@@ -37,7 +38,7 @@ int main(void) {
     struct sockaddr_in peer;
     int s;
     int rc;
-    char buf[ BUF_SIZE ];
+    char buf[ 1000 ];
     //Fill sockaddr_in
     peer.sin_family = AF_INET;
     peer.sin_port = htons(PORT);
@@ -63,7 +64,7 @@ int main(void) {
 
     rc = pthread_create(&send_thread, &threadAttr, SendHandler, (void*) s);
     while (1) {
-            rc = recv(s, buf, BUF_SIZE, 0);
+            rc = recv(s, buf, 1000, 0);
             if (rc <= 0)
                 SentErr("Receive call failed");
             else {
@@ -72,6 +73,7 @@ int main(void) {
                     if (buf[0] == '^')//If we doing something wrong
                     {
                         printf("Invalid choose.Press enter and Try again\n");
+                        break;
                     }
                     if (buf[0] == '#')//If we was disconected
                     {
@@ -79,7 +81,7 @@ int main(void) {
                         return 0;
                     }
                     if (buf[0] == '%')//If we doing something wrong
-                    {
+                    {   i++;
                         while (buf[i] != NULL) {
                             printf("%c", buf[i]);
                             i++;
@@ -89,10 +91,12 @@ int main(void) {
                     }
                     printf("%c", buf[i]);
                     i++;
+
                 }
             }
 
             printf("\n____________________\n");
+            memset(buf, 0, 1000);
         }
     }
 

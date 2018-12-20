@@ -13,8 +13,8 @@
 #define PORT 5001
 #define BUF_SIZE 256
 #define MAIN_MENU "Hello!\n What do you want?\n 1.See lot titles\n 2.New lot *only for manager*\n 3.See online users (also rewrite userlist.txt)\n 4.Exit\n 5.End *only for manager* \n"
-#define WELCOME "Please type who are you: (log your_login) \n"
-#define LOTS "If you want to make a bet enter new bet, which will be higher than older ('bet lot_name lot_price')\n"
+#define WELCOME "Please type who are you: (log your_login)\n"
+#define LOTS "If you want to make a bet enter new bet, which will be higher than older\n ('bet lot_name lot_price')\n"
 #define NEW_LOT "Please write name and price of the new lot ('lot lot_name lot_price')\n"
 #define SUCCESS "The new lot has created!\n"
 #define DENIED "You are not a manager\n"
@@ -37,6 +37,7 @@ void SendResults(); //Send results to all users
 void EndTrade(); //Delete all users
 int FindTitle(char title[]);
 void LotDetail(int lot, int socket, char* out);
+void DisconnectUser(int i);
 
 int threads = -1; //threads counter
 int lotCount = -1;
@@ -44,7 +45,7 @@ bool manager_count = false; // if manager online
 
 //Command list
 char kill_command[] = "kill";
-char online_command[] = "line";
+char online_command[] = "usrs";
 char shutdown_command[] = "off\n";
 
 struct clients {
@@ -115,8 +116,11 @@ void *ServerHandler(void* empty) {
             }
                 name[i-5]='\0';
 
-                if (!DeleteClient(name))
+                if (!DeleteClient(name)){
                     printf("All right \n");
+                    DisconnectUser(name);
+                    pthread_exit(NULL);
+                }
                 else
                     printf("Bad command\n");
            }
@@ -138,8 +142,8 @@ void *ServerHandler(void* empty) {
 }
 
 void SendToClient(int socket, char* message) {
-    int rc;
-    rc = send(socket, message, BUF_SIZE, 0);
+    ssize_t rc;
+    rc = send(socket, message, strlen(message), 0);
     if (rc <= 0)
         perror("send call failed");
 }
@@ -349,8 +353,8 @@ void *ClientHandler(void* arg) {
                 printf("%d\n", socket);
                 if (isManager)
                     manager_count = false;
-                SendToClient((int) socket, "#");
                 DeleteClient(FindNameBySocket(socket));
+                DisconnectUser((int)socket);
                 pthread_exit(NULL);
                 break;
             }
@@ -400,7 +404,7 @@ int FindTitle(char title[]) {
 
 void SendErrorToClient(int socket) {
     int rc = 0;
-    rc = send((int) socket, "^", 1000, 0);
+    rc = send((int) socket, "^", 2, 0);
     if (rc <= 0)
         perror("send call failed");
 }
@@ -412,7 +416,7 @@ int DeleteClient(char name[]) {
     if (number != -1) {
         if (users[number].manager)
             manager_count = false;
-        //SendToClient(users[number].s1, "#");
+        SendToClient(users[number].s1, "#");
         printf("\n The client %s was deleted \n", users[number].login);
         if (number != threads) {
             users[number] = users[threads];
@@ -523,6 +527,12 @@ void SendResults() {
         }
         SendToClient( users[i].s1, result);
     }
+}
+
+void DisconnectUser(int i) {
+        SendToClient(users[i].s1, "#");
+        shutdown(users[i].s1, 2);
+        close(users[i].s1);
 }
 
 void EndTrade() {
