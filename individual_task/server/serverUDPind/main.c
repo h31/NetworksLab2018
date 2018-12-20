@@ -92,7 +92,7 @@ void ServerHandler() {
 
 void SendToClient(char* message, struct sockaddr_in cli_addr, unsigned int clilen) {
     int rc;
-    rc = sendto(servSocket, message, BUF_SIZE, 0, (struct sockaddr*) &cli_addr, clilen);
+    rc = sendto(servSocket, message, strlen(message), 0, (struct sockaddr*) &cli_addr, clilen);
     if (rc <= 0)
         perror("send call failed");
 }
@@ -104,19 +104,31 @@ void *ClientHandler(void* arg) {
 
     int rc;
 
+    int valid, prev=0;
     //Working
     while (1) {
         char buf[ BUF_SIZE ]; //Buffer
         char pick[5] = "";
+        char idmes[2] = "";
         struct sockaddr_in cli_addr;
         unsigned int clilen;
         clilen = sizeof (cli_addr);
         rc = recvfrom(servSocket, buf, BUF_SIZE, 0, (struct sockaddr *) &cli_addr, &clilen);
         if (rc <= 0)
             SentErrServer("Recv call failed");
-        int position = 0;
-        while ((buf[position] != ' ') && (buf[position] != '\n') && (buf[position] != NULL) && (position != 5)) {
-            pick[position] = buf[position];
+
+       for(int i=0; i<2; i++) {
+            idmes[i] = buf[i];
+        }
+       valid = ((int)idmes[0]-48)*10 + (int)idmes[1]-48;
+       if(valid-prev>1)
+           SendToClient("Some masage is lost. Try to reconnect\n",cli_addr,clilen);
+       else
+           prev=valid;
+
+        int position = 3;
+        while ((buf[position] != ' ') && (buf[position] != '\n') && (buf[position] != NULL) && (position != 8)) {
+            pick[position-3] = buf[position];
             position++;
         }
         int command = 0;

@@ -35,10 +35,16 @@ void *SendHandler(void* socket) {
         if (id != -1) {
             text[strlen(text)] = id+48;
         }
-        rc = sendto(s, text, BUF_SIZE, 0, (struct sockaddr *) &peer, sizeof (peer));
+        char messId[BUF_SIZE];
+        messId[0]=(messageId/10)+'0';
+        messId[1]=(messageId%10)+'0';
+        messId[2]=" ";
+        strcat(messId,text);
+        rc = sendto(s, messId, BUF_SIZE, 0, (struct sockaddr *) &peer, sizeof (peer));
         if (rc <= 0)
             SentErr("Sent call error");
         messageId++;
+        memset(messId,0,BUF_SIZE);
     }
 
 }
