@@ -10,7 +10,7 @@ int write_file(char* filename, char* buf, int length)
     int res;
 
     // Open file for reading
-    if ((file = open(filename, O_WRONLY | O_CREAT)) == -1) {
+    if ((file = open(filename, O_WRONLY | O_CREAT, 0777)) == -1) {
         return OPEN_FILE_ERROR;
     }
 
