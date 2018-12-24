@@ -1,0 +1,253 @@
+\documentclass[a4paper,12pt]{extarticle}
+\usepackage[utf8x]{inputenc} 
+\usepackage[left=2.5cm, top=2cm, right=1cm, bottom=20mm, nohead, nofoot]{geometry}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{here}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\begin{document}
+	\begin{center}		% выравнивание по центру
+
+		\large Санкт-Петербургский политехнический университет Петра Великого\\
+		\large Институт компьютерных наук и технологий \\
+		\large Кафедра компьютерных систем и программных технологий\\[5cm]
+		% название института, затем отступ 5см
+		
+		\huge Сети и телекоммуникации\\[0.5cm] % название работы, затем отступ 0,5см
+		\large Отчет по лабораторной работе\\[0.1cm]
+		\large "Сетевые технологии"\\[4cm]
+
+	\end{center}
+	\begin{flushright} % выравнивание по правому краю
+		\begin{minipage}{0.35\textwidth} % врезка в половину ширины текста
+			\begin{flushleft} % выровнять её содержимое по левому краю
+
+				\large\textbf{Работу выполнил:}\\
+				\large Шайхенуров Р.Р.\\
+				\large {Группа:} 43501/1\\
+				
+				\large \textbf{Преподаватель:}\\
+				\large Алексюк А.О.\\
+
+			\end{flushleft}
+		\end{minipage}
+	\end{flushright}
+	
+	\vfill % заполнить всё доступное ниже пространство
+
+	\begin{center}
+	\large Санкт-Петербург\\
+	\large \the\year % вывести дату
+	\end{center} % закончить выравнивание по центру
+
+\thispagestyle{empty} % не нумеровать страницу
+\newpage
+\section{Сетевой форум}
+\subsection{Цель работы}
+Разработать приложение «Сетевой форум».
+Задание: разработать клиент-серверную систему сетевого форума, состоящую из сервера форума и пользовательских клиентов.
+Основные возможности. Серверное приложение должно реализовывать следующие функции:
+\begin{enumerate}
+\item Прослушивание определенного порта
+\item Обработка запросов на подключение по этому порту от клиентов
+\item Поддержка одновременной работы нескольких клиентов через механизм нитей
+\item Регистрация подключившегося клиента
+\item Выдача клиенту перечня новых сообщений («постов») форума
+\item Выдача клиенту иерархического представления форума
+\item Прием от клиента сообщения в ветку форума
+\item Выдача списка текущих активных пользователей форума
+\item Обработка запроса на отключение клиента
+\item Принудительное отключение клиента
+\end{enumerate}
+Клиентское приложение должно реализовывать следующие функции:
+\begin{enumerate}
+\item Установление соединения с сервером
+\item Посылка регистрационных данных клиента
+\item Получение и вывод перечня новых сообщений
+\item Получение и вывод иерархии форума
+\item Выбор текущей ветки форума
+\item Посылка сообщения в текущую ветку форума
+\item Запрос текущих активных пользователей форума
+\item Разрыв соединения
+\item Обработка ситуации отключения клиента сервером
+\end{enumerate}
+
+\subsection{Методы обмена сообщениями}
+\begin{itemize}
+\item void sendErrorCode(int newsockfd, int type); - отправка кода ошибки
+\item void sendSuccessCode(int newsockfd); - отправка "успешного" кода
+\item void writing(int newsockfd, char *buffer); - чтение сообщения от клиента
+\item void reading(int newsockfd, char *buffer); - отправка сообщения клиенту
+
+\end{itemize}
+\subsection{Формат команды}
+Так как протокол выбран синхронный, то реализация команды представляет из себя текстовое сообщение, в котором содержится цифра для взаимодействия с сервером.
+\begin{center}\large\textbf{[INT]}\end{center}
+Обмен сообщений происходит по следующему алгоритму:
+\newline
+Со стороны клиента:
+\begin{enumerate}
+\item Прием инструкции от сервера со STATUS-кодом
+\item Отправка сообщения
+\end{enumerate}
+Со стороны серера:
+\begin{enumerate}
+\item Отправка STATUS-кода клиенту
+\item Отправка сообщения
+\item Прием сообщения
+\item Выполнения команды
+\item Отправка ответа клиенту
+\end{enumerate}
+\subsection{Прототипы функций, реализованных на сервере:}
+\begin{enumerate}
+\item void actionLogin(char *buffer, int newsockfd);
+\item void actionMenu(char *buffer, int newsockfd);
+\item char *actionThemes(char *buffer, int newsockfd);
+\item void actionMessages(char *theme, char *buffer, int newsockfd);
+\item void actionNewMessage(char *buffer, int newsockfd);
+\item void checkOnline(char *buffer, int newsockfd);
+\item void putNewMsg(char *newMessage);
+\end{enumerate}
+
+\subsection{Описание функций:}
+\begin{enumerate}
+\item Авторизация клиента на форуме
+\item Вывод клиенту список меню и ожидание действия
+\item Вывод клиенту списка тем форума, ожидание выбора
+\item Прием сообщения в ветку форума, вывод всех сообщений ветки
+\item Вывод списка последних сообщений из всех тем форума
+\item Вывод списка пользователей, находящихся в данный момент онлайн
+\item Вставка сообщения в список последних сообщений форума
+\end{enumerate}
+
+\subsection{Описание}
+Для запуска севера используется строка вида:
+\begin{center}\large\textbf{[server.exe]}\end{center}
+где:
+\newline
+\textbf{server.exe} - скомпилированый исполняемый файл сервера
+\newline
+Для запуска клиента используется строка вида:
+\begin{center}\large\textbf{[client.exe addres port]}\end{center}
+где:
+\newline
+\textbf{client.exe} - скомпилированый исполняемый файл клиента
+\newline
+\textbf{addres} - адрес на котором запущен TCP-сервер(localhost)
+\newline
+\textbf{port} - порт который будет прослушивать сервер(8080)
+\newline
+При первом запуске потребуется ввести имя пользователя и пароль в виде username\_passwd, после прохождения проверки клиент будет подключен к серверу.
+Максимальное количество выводимых последних сообщений:
+\begin{verbatim}
+int countOfNewMsg = 3;
+\end{verbatim}
+Максимальная длина сообщения:
+\begin{verbatim}
+\#define MAX_LENGTH 256
+\end{verbatim}
+Используемые библиотеки сервера:
+\begin{verbatim}
+\#include <stdio.h>
+\#include <pthread.h>
+\#include <unistd.h>
+\#include <cygwin/socket.h>
+\#include <sys/socket.h>
+\#include <strings.h>
+\#include <stdlib.h>
+\#include <cygwin/in.h>
+\#include <memory.h>
+\#include <stdbool.h>
+\end{verbatim}
+Тип сокета:
+\begin{verbatim}
+int sockfd;
+sockfd = socket(AF_INET, SOCK_STREAM, 0);
+\end{verbatim}
+
+Сервер реализован с помощью enum'а, то есть имеет константные состояния для каждого клиента. Это возможно, так как используется механизм нитей, поэтому у каждого клиента своя область видимости и свое состояние сервера.
+\subsection{Функции, для механизма нитей}
+\begin{enumerate}
+\item void *connection\_f(); - нить, подключающая клиента к серверу, выделяя ему \begin{verbatim}socketId\end{verbatim}
+\item void *connect\_handler(void *args); - нить, выдающая собственную область видимости состояний сервера клиенту
+\end{enumerate}
+Исходный код можно посмотреть на https://github.com/Pox3R/NetworksLab2018
+
+\section{Прикладной протокол HTTP}
+\subsection{Цель работы}
+Разработать «Прикладной протокол HTTP».
+Задание: предоставить серверную реализацию протокола HTTP обрабатывающего следующие методы HTTP:
+\begin{enumerate}
+\item GET
+\item POST
+\item HEAD
+\end{enumerate}
+Клиентским приложением является браузер или программа Postman
+
+\subsection{Методы обмена сообщениями}
+Для обмена сообщениями используется браузер или программа Postman, с их помощью можно формировать запросы нужных видов и отправлять серверу
+\subsection{Формат команды}
+Так как протокол выбран синхронный, то реализация команды представляет из себя текстовое сообщение, в котором содержится цифра для взаимодействия с сервером.
+
+Обмен данными происходит по следующему алгоритму:
+\newline
+Со стороны клиента:
+Формируется HTTP запрос и отправляется на сервер
+Со стороны серера:
+Сервер принимает запрос, после чего обрабатывает полученное сообщение, через s.getInputStream(), после чего формирует \textbf{response header} и \textbf{response body}
+и отправляет через s.getOutputStream()
+\subsection{Прототипы функций, реализованных на сервере:}
+\begin{enumerate}
+\item public static void main(String args[]) - main-функция, в которой происходит прослушка порта и создание потока, при подключении клиента
+\item public HttpServer(Socket s) - конструктор класса, запускающий поток для конкретного сокета
+\item public void run() - функция, необходимая для реализации интерфейса Thread, которую будет выполнять поток
+\item protected String getData(String header) - получение данных, отправленных на сервер для их разбора - обрабатывает GET запрос
+\item public String parseURL(String path, String URI) - парсинг URL, необходимый для извлечения пути к файлу, к которому обратился клиент
+\item protected String extract(String str, String start, String end) - функция, необходимая для извлечения URL
+\item public String getPOST(String URI) - обработка POST-запроса
+\item public String getHEAD(String URI) - обработка HEAD запроса
+\end{enumerate}
+
+\subsection{Описание}
+Для запуска севера используется строка вида:
+\begin{center}\large\textbf{[server.jar]}\end{center}
+Или запустить можно в среде разработки Intellij IDEA.
+\newline
+Для запуска клиента - GET запрос:
+\begin{enumerate}
+\item Открываем браузер
+\item в адресную строку вводим http://localhost:80/*имя файла, который вы хотите получить*, например, http://localhost:80/logo.jpg
+\end{enumerate}
+Для POST и HEAD запросов:
+\begin{enumerate}
+\item Открываем Postman
+\item Вводим адрес, указанный выше, с файлом(Для HEAD запроса) и с Query-параметрами для POST-запроса
+\item Нажимаем кнопку SEND
+\item В нижней части окна получаем ответ сервера
+\item В POST запросе получаем список Query-параметров и Header запроса
+\item В HEAD запросе получаем Header файла, который указали
+\end{enumerate}
+Сервер работает асинхронно, то есть выдает то, что хочет клиент и завершает поток. Поэтому при каждом новом подключении клиента происходит пересоздание сокета, это позволяет достичь того, что поключиться к серверу смогут множество клиентов. При вводе имени файла, которого нет на сервере, сервер выдаст ошибку 404, означающую "Not Found", при попытке получить HEAD файла, не существующего на сервере, приходит HEADER с нулевыми значениями. При отправке POST-запроса, файлы не учитываются, считываются лишь его Query-параметры, которые отправляет сервер в Response Body
+
+Используемые библиотеки сервера:
+\begin{verbatim}
+import java.io.*;
+import java.net.*;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+\end{verbatim}
+
+\section{Выводы}
+При реализации TCP сервера возникли проблемы с обработкой файлов и строк, так как не использовались стандартные библиотеки. Написано в ручную множество функций для строк(Например, удаление из середины строки), используя стандартные CHAR'овские функции. В итоге получили Клиент-Серверное синхронное приложение: Сетевой форум, обрабатывающий по своему протоколу сообщения клиента. С помощью STATUS-кодов можно определить, что именно не так сделал клиент и легко исправить ввод. Использовалась модель конечного автомата, которая не очень хорошо подожша бы для графического приложения, но для данного случая подходит отлично. В будущем можно будет пересмотреть логику сервера, чтобы он был асинхронным, позволяющим перейти в любое меню по командам.
+\newline
+При реализации HTTP протокола возникли следующие сложности: обработка принятого сообщения. В итоге была написана функция, которая обрезает Request, в связи с нужным ответом клиенту. Использовались Java-socket'ы и интерфейс Thread, которые немного упростили задачу в конечном итоге. Так же сервером формируется Response в связи со стандартом RFC так, чтобы это поддерживалось браузером.
+\end{document}
