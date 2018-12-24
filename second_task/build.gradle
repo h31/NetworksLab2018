@@ -1,0 +1,21 @@
+apply plugin: 'docker'
+
+buildscript {
+	repositories { jcenter() }
+	dependencies {
+		classpath 'se.transmode.gradle:gradle-docker:1.2'
+	}
+}
+
+docker {
+	baseImage "swift:4.2.1"
+	maintainer 'Eldar Goloviznin "radleweird@gmail.com"'
+}
+
+task serverDocker(type: Docker) {
+	applicationName = "radleweird/server"
+	exposePort 80
+	addFile('source/', 'source/')
+	workingDir('source')
+	runCommand 'swift build'
+}

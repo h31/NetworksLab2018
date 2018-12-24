@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Socket",
+        "repositoryURL": "https://github.com/IBM-Swift/BlueSocket.git",
+        "state": {
+          "branch": null,
+          "revision": "9c1b578c618f0bfac017aaaaead19de57bb37831",
+          "version": "1.0.43"
+        }
+      },
+      {
+        "package": "SWXMLHash",
+        "repositoryURL": "https://github.com/drmohundro/SWXMLHash.git",
+        "state": {
+          "branch": null,
+          "revision": "9ba116841126f6c63435beef21a4cd247c32d2e7",
+          "version": "4.7.6"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
