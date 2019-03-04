@@ -600,3 +600,7 @@ __pycache__/
 # should be stored in the .pubxml.user file.
 
 # End of https://www.gitignore.io/api/c++,latex,cmake,netbeans,qtcreator,visualstudio
+
+# Some folders
+individual_task/server/s_l_build/
+individual_task/client/c_l_build/

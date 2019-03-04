@@ -1,0 +1,77 @@
+\\\\\ Пример лога работы с сервером со стороны клиента /////
+
+user@user-VirtualBox:~/NetworksLab2018/simple_tcp_2/client_linux/c_l_build$ ./client_linux 127.0.0.1 5001
+Please enter the command: a CU1
+Success
+---End of the response---
+Please enter the command: a CU2
+Success
+---End of the response---
+Please enter the command: l
+
+1) CU1: 0
+2) CU2: 0
+
+---End of the response---
+Please enter the command: c 2 30
+Success
+---End of the response---
+Please enter the command: l
+
+1) CU1: 0
+2) CU2: 30
+
+---End of the response---
+Please enter the command: c 2 40
+Success
+---End of the response---
+Please enter the command: l
+
+1) CU1: 0
+2) CU2: 40 (+10)
+
+---End of the response---
+Please enter the command: c 2 20
+Success
+---End of the response---
+Please enter the command: l
+
+1) CU1: 0
+2) CU2: 20 (-20)
+
+---End of the response---
+Please enter the command: s 2
+CU2: 20 - 40 - 30 - 0
+---End of the response---
+Please enter the command: d 1
+Success
+---End of the response---
+Please enter the command: l
+
+2) CU2: 20 (-20)
+
+---End of the response---
+Please enter the command: a CU3
+Success
+---End of the response---
+Please enter the command: l
+
+1) CU3: 0
+2) CU2: 20 (-20)
+
+---End of the response---
+Please enter the command: s 4
+Error. Currency does not exist
+---End of the response---
+Please enter the command: d 8
+Error. Wrong currency number
+---End of the response---
+Please enter the command: c 2 qwe
+Error. Wrong value format
+---End of the response---
+Please enter the command: pri vet
+Unknown command. Try again
+---End of the response---
+Please enter the command: c 2 20
+Error. Same value
+---End of the response---
