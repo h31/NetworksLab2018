@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <locale.h>
+#include <signal.h>
+#include <errno.h>
 
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -21,7 +24,7 @@ bool game_process = false;
 int result = -1;
 int listener;// listening socket descriptor
 
-char *password = "1111";
+char *password = "1366";
 
 struct client {
     int bet;
@@ -78,7 +81,7 @@ char CompareCharArrayIgnoreCase(const char *x, const char *y){
 
 int SendToClient(int socket, char* message) {
     if (send(socket, message, BUF_SIZE, 0) < 0) {
-        perror("Message not sent to client. Socket was closed");
+        perror("Сообщение не отправлено клиенту. Сокет закрыт.");
         return -1;
     }
     return 1;
@@ -101,7 +104,7 @@ int CroupierAuth(int socket) {
     int count_attempt = 0;
     while (count_attempt < 3) {
         if (recv(socket, buf, BUF_SIZE, 0) < 0) {
-            perror("Recv call failed");
+            perror("Не удалось принять вызов.");
             close(socket);
             clients_count--;
             return -1;
@@ -111,7 +114,7 @@ int CroupierAuth(int socket) {
             strtok(buf, "\n");
             if (CompareCharArrayIgnoreCase(password, buf) != 0) {
                 if (count_attempt >= 3) {
-                    printf("The croupier entered the wrong password three times\n");
+                    printf("Крупье ввёл неверный пароль три раза.\n");
                     if (SendToClient(socket, "THIRDPASW") > 0) {
                         clients_count--;
                         close(socket);
@@ -123,7 +126,7 @@ int CroupierAuth(int socket) {
                 memset(buf, 0, BUF_SIZE);
             }
             else {
-                printf("The croupier login\n");
+                printf("Крупье зашёл.\n");
                 SendToClient(socket, "LOGGED");
                 memset(buf, 0, BUF_SIZE);
                 break;
@@ -195,7 +198,7 @@ void *ClientHandler(void* current_index) {
     }
     if (clients_count >= MAX_GAMERS && CompareCharArrayIgnoreCase(buf, "GAMER") == 0) {
         if ((SendToClient(socket, "ONLYCROUP") < 0))
-            printf("Message ONLYCROUP does send to ID %d", (int)current_index);
+            printf("Сообщение ONLYCROUP отправляется на ID %d", (int)current_index);
         KickClient((int)current_index);
         pthread_exit(NULL);
     }
@@ -205,9 +208,9 @@ void *ClientHandler(void* current_index) {
     memset(buf, 0, BUF_SIZE);
     if (is_croupier) {
         if (croupier_online) {
-            printf("Client was Deleted. Croupier already exist\n");
+            printf("Клиент был удалён. Крупье уже существует.\n");
             if (SendToClient(socket, "CROUPEXIST") < 0 )
-                printf("Message CROUPEXIST does send to ID %d", (int)current_index);
+                printf("Сообщение CROUPEXIST отправляется на ID %d", (int)current_index);
             KickClient((int)current_index);
             pthread_exit(NULL);
         } else {
@@ -220,7 +223,7 @@ void *ClientHandler(void* current_index) {
         }
     }
     else {
-        printf("The client with ID: '%d' login.\n", (int) current_index);
+        printf("Клиент с ID: '%d' зашел.\n", (int) current_index);
 
         char tmp[BUF_SIZE];
         snprintf(tmp, BUF_SIZE, "%s%d", "GAMERID ", (int) current_index);
@@ -246,7 +249,7 @@ void *ClientHandler(void* current_index) {
                 };
                 memset(buf, 0, BUF_SIZE);
                 if (recv(socket, buf, BUF_SIZE, 0) < 0) {
-                    perror("Recv call failed");
+                    perror("Не удалось принять вызов.");
                     KickClient((int)current_index);
                     close(socket);
                     pthread_exit(NULL);
@@ -275,6 +278,7 @@ void *ClientHandler(void* current_index) {
                 if (strcmp(buf, "STARTGAME") == 0 && is_croupier) {
                     currentStep = RESULT;
                     game_process = true;
+		    sleep(1);
                     continue;
                 }
                 if (strcmp(buf, "EXIT") == 0) {
@@ -325,27 +329,28 @@ void *ServerHandler(void* empty) {
             strncpy(id, input + sizeof(deactivate), k - sizeof(deactivate));
             if (pClients[atoi(id)].isActive) {
                 KickClient(atof(id));
-                printf("Kick client with id %d.\n", atoi(id));
+                printf("Удалить клиента с ID %d.\n", atoi(id));
             } else {
-                printf("Client with id %d offline.\n", atoi(id));
+                printf("Клиент с ID %d вышел из сети.\n", atoi(id));
             }
         }
         if (strcmp(input, shutdown_serv) == 0) {
             if (input[sizeof(shutdown_serv)-1] == '\0') {
                 ShutdownRoullete();
                 close(listener);
-                printf("All clients are disconnected.\nServer socket are closed");
+                printf("Все клиенты отключились.\nСокет сервера закрыт.");
                 exit(0);
             } else
-                printf("No command '%s' found, did you mean: command '%s'\n", input, shutdown_serv);
+                printf("Не найдена команда '%s', вы имели в виду: команда '%s'\n", input, shutdown_serv);
         }
     }
 }
 
 int main(void){
+    setlocale(LC_ALL, "Rus");
     pClients = (struct client *) malloc(MAX_GAMERS + 1);
     if (pClients == NULL) {
-        perror("Could not allocate memory");
+        perror("Не удалось выделить память.");
         exit(1);
     }
 
@@ -355,9 +360,13 @@ int main(void){
 
     listener = socket(AF_INET, SOCK_STREAM, 0);
     if (listener < 0) {
-        perror("ERROR opening listening socket");
+        perror("Ошибка при открытии слушающего сокета.");
         exit(1);
     }
+
+    int enable = 1;
+    if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        perror("setsockopt(SO_REUSEADDR) не удалось");
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -395,7 +404,7 @@ int main(void){
             pClients[cur_id].socket_desc = newfd;
             pClients[cur_id].bet = -1;
 
-            printf("Socket %d connected\n", newfd);
+            printf("Сокет %d подключен\n", newfd);
             SendToClient(newfd, "CONNECTED");
             clients_count++;
             pthread_t client_thread;
