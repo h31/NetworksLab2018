@@ -43,7 +43,6 @@ enum step            /* Defines an enumeration type    */
 
 void ShutdownRoullete() {
     for (int i = 0; i <= clients_count; i++) {
-        //shutdown(pClients[i].socket_desc, SHUT_RDWR);
         close(pClients[i].socket_desc);
     }
 }
@@ -75,9 +74,6 @@ char CompareCharArrayIgnoreCase(const char *x, const char *y){
     }
     return 1;
 }
-
-
-
 
 int SendToClient(int socket, char* message) {
     if (send(socket, message, BUF_SIZE, 0) < 0) {
@@ -175,14 +171,13 @@ int ResultRoulette(int socket) {
     return 0;
 }
 
-int AppointmentId() {
+int AppointmentId() {				//определение ID
     for (int i = 0; i < MAX_GAMERS + 1; i++) {
         if (!pClients[i].isActive)
             return i;
     }
     return -1;
 }
-
 
 void *ClientHandler(void* current_index) {
     int socket = pClients[(int) current_index].socket_desc;
@@ -314,7 +309,6 @@ void *ClientHandler(void* current_index) {
     }
 }
 
-
 void *ServerHandler(void* empty) {
     char input[BUF_SIZE]; //buffer
     //Getting text from keyboard
@@ -323,7 +317,6 @@ void *ServerHandler(void* empty) {
         fgets(input, BUF_SIZE, stdin);
         strtok(input, "\n");
         if (strcmp(input, deactivate) == 0) {
-
             size_t k = strlen(input);
             char *id = malloc(k - sizeof(deactivate));
             strncpy(id, input + sizeof(deactivate), k - sizeof(deactivate));
@@ -372,7 +365,6 @@ int main(void){
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(PORT);
-
 
     /* Now bind the host address using bind() call.*/
     if (bind(listener, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
